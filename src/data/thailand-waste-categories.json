@@ -1,0 +1,347 @@
+{
+  "metadata": {
+    "appName": "Thailand Waste Diary",
+    "description": "Daily waste tracking with carbon credits and gamification",
+    "country": "Thailand",
+    "dataSource": "Thailand Greenhouse Gas Management Organization (TGO)",
+    "lastUpdated": "2024",
+    "currency": "Carbon Credits (CC)"
+  },
+  "wasteCategories": [
+    {
+      "id": "food_waste",
+      "name": "Food Waste",
+      "nameLocal": "เศษอาหาร",
+      "icon": "🍎",
+      "color": "#dc2626",
+      "description": "Food scraps, leftovers, expired food",
+      "examples": ["rice leftovers", "fruit peels", "vegetables", "meat scraps", "bread"],
+      "carbonImpact": {
+        "landfill": 2.53,
+        "compost": 0.3326,
+        "animalFeed": 0,
+        "biogas": -0.5
+      },
+      "carbonCredits": {
+        "disposed": -25,
+        "composted": 22,
+        "animalFeed": 25,
+        "reduced": 30
+      },
+      "tips": [
+        "Compost at home to earn carbon credits!",
+        "Donate edible food to reduce waste",
+        "Plan meals to prevent over-buying"
+      ]
+    },
+    {
+      "id": "plastic_bottles",
+      "name": "Plastic Bottles",
+      "nameLocal": "ขวดพลาสติก",
+      "icon": "🍾",
+      "color": "#3b82f6",
+      "description": "Water bottles, soda bottles, plastic containers",
+      "examples": ["water bottles", "soft drink bottles", "milk bottles", "shampoo bottles"],
+      "carbonImpact": {
+        "landfill": 1.0388,
+        "recycled": 0.4044,
+        "reused": 0.1,
+        "avoided": -1.91
+      },
+      "carbonCredits": {
+        "disposed": -19,
+        "recycled": 15,
+        "reused": 18,
+        "avoided": 25
+      },
+      "tips": [
+        "Bring reusable water bottle to earn credits!",
+        "Recycle at 7-Eleven collection points",
+        "Reuse bottles for plants or storage"
+      ]
+    },
+    {
+      "id": "plastic_bags",
+      "name": "Plastic Bags",
+      "nameLocal": "ถุงพลาสติก",
+      "icon": "🛍️",
+      "color": "#ef4444",
+      "description": "Shopping bags, food bags, packaging",
+      "examples": ["shopping bags", "food packaging", "garbage bags", "zip bags"],
+      "carbonImpact": {
+        "landfill": 1.0388,
+        "recycled": 0.4044,
+        "avoided": -6.7071
+      },
+      "carbonCredits": {
+        "disposed": -67,
+        "recycled": 5,
+        "reused": 10,
+        "avoided": 67
+      },
+      "tips": [
+        "Use cloth bags at Thai markets for huge credits!",
+        "Reuse plastic bags multiple times",
+        "Participate in plastic bag collection drives"
+      ]
+    },
+    {
+      "id": "paper_cardboard",
+      "name": "Paper & Cardboard",
+      "nameLocal": "กระดาษและกล่อง",
+      "icon": "📄",
+      "color": "#92400e",
+      "description": "Newspapers, boxes, paper packaging",
+      "examples": ["newspapers", "cardboard boxes", "paper bags", "magazines", "notebooks"],
+      "carbonImpact": {
+        "landfill": 2.93,
+        "recycled": 0.8,
+        "reused": 0.3,
+        "composted": 1.2
+      },
+      "carbonCredits": {
+        "disposed": -29,
+        "recycled": 20,
+        "reused": 25,
+        "digital": 30
+      },
+      "tips": [
+        "Sell to local paper collectors",
+        "Reuse boxes for storage or moving",
+        "Choose digital receipts when possible"
+      ]
+    },
+    {
+      "id": "glass_bottles",
+      "name": "Glass Bottles",
+      "nameLocal": "ขวดแก้ว",
+      "icon": "🫙",
+      "color": "#16a34a",
+      "description": "Glass bottles, jars, containers",
+      "examples": ["beer bottles", "sauce bottles", "jam jars", "medicine bottles"],
+      "carbonImpact": {
+        "landfill": 0.5,
+        "recycled": 0.2,
+        "reused": 0.05,
+        "returned": 0
+      },
+      "carbonCredits": {
+        "disposed": -5,
+        "recycled": 25,
+        "reused": 30,
+        "returned": 35
+      },
+      "tips": [
+        "Return bottles to stores for deposits",
+        "Reuse jars for food storage",
+        "Glass recycling centers give good rates"
+      ]
+    },
+    {
+      "id": "metal_cans",
+      "name": "Metal Cans",
+      "nameLocal": "กระป่องโลหะ",
+      "icon": "🥫",
+      "color": "#6b7280",
+      "description": "Aluminum cans, tin cans, metal containers",
+      "examples": ["soda cans", "beer cans", "canned food", "spray cans"],
+      "carbonImpact": {
+        "landfill": 0.8,
+        "recycled": 0.1,
+        "reused": 0.05
+      },
+      "carbonCredits": {
+        "disposed": -8,
+        "recycled": 30,
+        "reused": 35,
+        "sold": 40
+      },
+      "tips": [
+        "Sell aluminum cans - they have high value!",
+        "Clean cans before recycling",
+        "Metal recyclers pay well in Thailand"
+      ]
+    },
+    {
+      "id": "organic_waste",
+      "name": "Organic Waste",
+      "nameLocal": "ขยะอินทรีย์",
+      "icon": "🍃",
+      "color": "#22c55e",
+      "description": "Garden waste, leaves, branches",
+      "examples": ["leaves", "grass clippings", "small branches", "flowers", "coconut shells"],
+      "carbonImpact": {
+        "landfill": 3.27,
+        "composted": 0.3326,
+        "mulch": 0.1,
+        "biogas": -0.8
+      },
+      "carbonCredits": {
+        "disposed": -33,
+        "composted": 30,
+        "mulch": 32,
+        "biogas": 40
+      },
+      "tips": [
+        "Perfect for home composting!",
+        "Use as mulch for plants",
+        "Community biogas projects available"
+      ]
+    },
+    {
+      "id": "electronic_waste",
+      "name": "Electronic Waste",
+      "nameLocal": "ขยะอิเล็กทรอนิกส์",
+      "icon": "📱",
+      "color": "#7c3aed",
+      "description": "Old phones, batteries, electronics",
+      "examples": ["smartphones", "batteries", "chargers", "old computers", "LED bulbs"],
+      "carbonImpact": {
+        "landfill": 5.2,
+        "recycled": 1.8,
+        "refurbished": 0.5,
+        "proper_disposal": 2.1
+      },
+      "carbonCredits": {
+        "disposed": -52,
+        "recycled": 25,
+        "donated": 40,
+        "trade_in": 45
+      },
+      "tips": [
+        "Take to official e-waste collection points",
+        "Trade-in programs at electronics stores",
+        "Donate working devices to schools"
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "id": "first_scan",
+      "name": "First Step",
+      "description": "Scanned your first waste item",
+      "icon": "🎯",
+      "credits": 10
+    },
+    {
+      "id": "daily_tracker",
+      "name": "Daily Tracker",
+      "description": "Tracked waste for 7 consecutive days",
+      "icon": "📅",
+      "credits": 50
+    },
+    {
+      "id": "recycling_hero",
+      "name": "Recycling Hero",
+      "description": "Recycled 10 items in one day",
+      "icon": "♻️",
+      "credits": 100
+    },
+    {
+      "id": "compost_master",
+      "name": "Compost Master",
+      "description": "Composted 1kg of organic waste",
+      "icon": "🌱",
+      "credits": 75
+    },
+    {
+      "id": "plastic_free",
+      "name": "Plastic-Free Day",
+      "description": "Zero plastic waste for one day",
+      "icon": "🌿",
+      "credits": 150
+    },
+    {
+      "id": "waste_warrior",
+      "name": "Waste Warrior",
+      "description": "Earned 1000 carbon credits",
+      "icon": "🏆",
+      "credits": 200
+    },
+    {
+      "id": "tree_saver",
+      "name": "Tree Saver",
+      "description": "Saved equivalent of planting 1 tree",
+      "icon": "🌳",
+      "credits": 300
+    }
+  ],
+  "gamification": {
+    "treeEquivalent": {
+      "creditsPerTree": 500,
+      "description": "500 carbon credits = 1 tree planted equivalent"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "name": "Eco Beginner",
+        "minCredits": 0,
+        "maxCredits": 99,
+        "icon": "🌱",
+        "color": "#22c55e"
+      },
+      {
+        "level": 2,
+        "name": "Green Warrior",
+        "minCredits": 100,
+        "maxCredits": 499,
+        "icon": "🌿",
+        "color": "#16a34a"
+      },
+      {
+        "level": 3,
+        "name": "Eco Champion",
+        "minCredits": 500,
+        "maxCredits": 999,
+        "icon": "🌳",
+        "color": "#15803d"
+      },
+      {
+        "level": 4,
+        "name": "Climate Hero",
+        "minCredits": 1000,
+        "maxCredits": 2499,
+        "icon": "🏆",
+        "color": "#166534"
+      },
+      {
+        "level": 5,
+        "name": "Planet Protector",
+        "minCredits": 2500,
+        "maxCredits": 999999,
+        "icon": "🌍",
+        "color": "#14532d"
+      }
+    ],
+    "dailyGoals": [
+      {
+        "id": "scan_5_items",
+        "name": "Daily Scanner",
+        "description": "Scan 5 waste items today",
+        "target": 5,
+        "credits": 20
+      },
+      {
+        "id": "recycle_something",
+        "name": "Daily Recycler",
+        "description": "Recycle at least 1 item today",
+        "target": 1,
+        "credits": 15
+      },
+      {
+        "id": "compost_organic",
+        "name": "Daily Composter",
+        "description": "Compost organic waste today",
+        "target": 1,
+        "credits": 25
+      },
+      {
+        "id": "avoid_plastic",
+        "name": "Plastic Avoider",
+        "description": "Avoid single-use plastic today",
+        "target": 1,
+        "credits": 30
+      }
+    ]
+  }
+}

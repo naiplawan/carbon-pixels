@@ -1,0 +1,217 @@
+{
+  "questions": [
+    {
+      "id": "transportation",
+      "title": "How do you usually get around?",
+      "description": "Tell us about your daily transportation habits",
+      "icon": "🚗",
+      "answers": [
+        {
+          "id": "car_alone",
+          "text": "Drive alone in a car",
+          "value": 12.5,
+          "visual": "smogCloud",
+          "description": "Driving alone generates significant CO2 emissions"
+        },
+        {
+          "id": "car_carpool",
+          "text": "Carpool or rideshare",
+          "value": 6.2,
+          "visual": "halfSmog",
+          "description": "Sharing rides cuts emissions in half"
+        },
+        {
+          "id": "public_transport",
+          "text": "Public transportation",
+          "value": 2.8,
+          "visual": "greenLeaves",
+          "description": "Mass transit is much more efficient"
+        },
+        {
+          "id": "bike_walk",
+          "text": "Bike or walk",
+          "value": 0,
+          "visual": "flowers",
+          "description": "Zero emissions - you're a sustainability star!"
+        }
+      ]
+    },
+    {
+      "id": "home_energy",
+      "title": "What powers your home?",
+      "description": "Your home energy choices make a big difference",
+      "icon": "🏠",
+      "answers": [
+        {
+          "id": "coal_gas",
+          "text": "Mostly coal or natural gas",
+          "value": 15.8,
+          "visual": "smokeyHouse",
+          "description": "Fossil fuels have a high carbon impact"
+        },
+        {
+          "id": "mixed_grid",
+          "text": "Standard electricity grid",
+          "value": 8.4,
+          "visual": "normalHouse",
+          "description": "Typical grid electricity is moderately carbon-intensive"
+        },
+        {
+          "id": "renewable_mix",
+          "text": "Some renewable energy",
+          "value": 4.2,
+          "visual": "solarPanels",
+          "description": "Every bit of clean energy helps"
+        },
+        {
+          "id": "full_renewable",
+          "text": "100% renewable energy",
+          "value": 1.0,
+          "visual": "ecoHouse",
+          "description": "Clean energy champion!"
+        }
+      ]
+    },
+    {
+      "id": "diet",
+      "title": "What's on your plate?",
+      "description": "Food choices have a surprising impact on carbon emissions",
+      "icon": "🍽️",
+      "answers": [
+        {
+          "id": "heavy_meat",
+          "text": "Meat with every meal",
+          "value": 18.3,
+          "visual": "cowEmissions",
+          "description": "Livestock farming produces significant methane"
+        },
+        {
+          "id": "moderate_meat",
+          "text": "Meat a few times a week",
+          "value": 9.7,
+          "visual": "balancedPlate",
+          "description": "Balanced diet with moderate impact"
+        },
+        {
+          "id": "pescatarian",
+          "text": "Fish but no other meat",
+          "value": 6.1,
+          "visual": "fishPlate",
+          "description": "Seafood has lower emissions than livestock"
+        },
+        {
+          "id": "vegetarian",
+          "text": "Vegetarian (dairy/eggs)",
+          "value": 3.8,
+          "visual": "veggiePlate",
+          "description": "Plant-forward eating is climate-friendly"
+        },
+        {
+          "id": "vegan",
+          "text": "Fully plant-based",
+          "value": 2.1,
+          "visual": "plantLeaves",
+          "description": "The most climate-conscious food choice"
+        }
+      ]
+    },
+    {
+      "id": "consumption",
+      "title": "How do you shop?",
+      "description": "Our buying habits affect the planet too",
+      "icon": "🛍️",
+      "answers": [
+        {
+          "id": "frequent_new",
+          "text": "Buy new things frequently",
+          "value": 14.2,
+          "visual": "shoppingBags",
+          "description": "Fast consumption means high emissions"
+        },
+        {
+          "id": "occasional_new",
+          "text": "Buy new things occasionally",
+          "value": 7.8,
+          "visual": "moderateShopping",
+          "description": "Mindful purchasing reduces impact"
+        },
+        {
+          "id": "secondhand_focus",
+          "text": "Prefer secondhand/repair",
+          "value": 3.4,
+          "visual": "recycleSymbol",
+          "description": "Reusing extends product lifecycles"
+        },
+        {
+          "id": "minimal_buying",
+          "text": "Buy only what I need",
+          "value": 1.8,
+          "visual": "minimalist",
+          "description": "Less stuff means less carbon"
+        }
+      ]
+    },
+    {
+      "id": "waste",
+      "title": "What happens to your waste?",
+      "description": "Waste management choices matter for methane emissions",
+      "icon": "♻️",
+      "answers": [
+        {
+          "id": "mostly_trash",
+          "text": "Most things go to trash",
+          "value": 8.9,
+          "visual": "landfill",
+          "description": "Landfills produce methane, a potent greenhouse gas"
+        },
+        {
+          "id": "some_recycling",
+          "text": "Recycle when convenient",
+          "value": 5.2,
+          "visual": "someRecycling",
+          "description": "Some recycling helps reduce waste"
+        },
+        {
+          "id": "active_recycling",
+          "text": "Actively recycle most things",
+          "value": 2.7,
+          "visual": "recyclingBins",
+          "description": "Good recycling habits make a difference"
+        },
+        {
+          "id": "comprehensive_waste",
+          "text": "Recycle, compost, minimize",
+          "value": 1.1,
+          "visual": "compostBin",
+          "description": "Comprehensive waste management is excellent"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "excellent": {
+      "max": 20,
+      "title": "Carbon Champion! 🌱",
+      "description": "Your lifestyle has a very low carbon footprint. You're making fantastic choices for the planet!",
+      "color": "#48bb78"
+    },
+    "good": {
+      "max": 35,
+      "title": "Eco-Conscious 🌿",
+      "description": "You're doing well! Your carbon footprint is below average with room for improvement.",
+      "color": "#68d391"
+    },
+    "average": {
+      "max": 55,
+      "title": "Getting Started 🌍",
+      "description": "Your footprint is about average. There are some great opportunities to reduce your impact.",
+      "color": "#f6e05e"
+    },
+    "high": {
+      "max": 999,
+      "title": "Time for Change 🌡️",
+      "description": "Your carbon footprint is above average. Small changes can make a big difference!",
+      "color": "#fc8181"
+    }
+  }
+}

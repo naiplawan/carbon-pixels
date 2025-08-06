@@ -1,0 +1,391 @@
+{
+  "metadata": {
+    "country": "Thailand",
+    "dataSource": "Thailand Greenhouse Gas Management Organization (TGO) and Energy Policy and Planning Office (EPPO)",
+    "lastUpdated": "2024",
+    "electricityEmissionFactor": 0.399,
+    "electricityUnit": "kg CO2e/kWh",
+    "transportationUnit": "g CO2e/km",
+    "wasteUnit": "kg CO2e/kg",
+    "foodUnit": "kg CO2e/day"
+  },
+  "questions": [
+    {
+      "id": "transportation",
+      "title": "How do you usually travel in Thailand?",
+      "description": "Transportation accounts for 31% of Thailand's energy-related CO2 emissions",
+      "icon": "🚗",
+      "category": "Transportation",
+      "answers": [
+        {
+          "id": "heavy_duty_diesel",
+          "text": "Heavy-duty diesel vehicle (truck/bus)",
+          "value": 1.1988,
+          "unit": "kg CO2e/km",
+          "visual": "heavyTruck",
+          "description": "Highest emissions - trucks and buses using diesel fuel",
+          "source": "TGO Thailand-specific data"
+        },
+        {
+          "id": "bus_public",
+          "text": "Public bus",
+          "value": 0.7073,
+          "unit": "kg CO2e/km",
+          "visual": "publicBus",
+          "description": "Moderate emissions but shared among passengers",
+          "source": "TGO Thailand-specific data"
+        },
+        {
+          "id": "passenger_car",
+          "text": "Personal car (gasoline)",
+          "value": 0.30947,
+          "unit": "kg CO2e/km",
+          "visual": "personalCar",
+          "description": "Average emissions for passenger cars in Thailand",
+          "source": "TGO Thailand-specific data"
+        },
+        {
+          "id": "pickup_truck",
+          "text": "Pickup truck",
+          "value": 0.23452,
+          "unit": "kg CO2e/km",
+          "visual": "pickupTruck",
+          "description": "Popular in Thailand - 24.38% of vehicle emissions",
+          "source": "TGO Thailand-specific data"
+        },
+        {
+          "id": "taxi_ride",
+          "text": "Taxi (including NGV/LPG)",
+          "value": 0.26717,
+          "unit": "kg CO2e/km",
+          "visual": "taxi",
+          "description": "Taxis with alternative fuels still produce emissions",
+          "source": "TGO Thailand-specific data"
+        },
+        {
+          "id": "motorcycle",
+          "text": "Motorcycle",
+          "value": 0.0425,
+          "unit": "kg CO2e/km",
+          "visual": "motorcycle",
+          "description": "Low emissions per trip - 52.81% of Thailand vehicles",
+          "source": "TGO Thailand-specific data"
+        },
+        {
+          "id": "bicycle_walk",
+          "text": "Bicycle or walking",
+          "value": 0,
+          "unit": "kg CO2e/km",
+          "visual": "bicycle",
+          "description": "Zero direct emissions - best choice for the environment",
+          "source": "TGO Thailand-specific data"
+        }
+      ]
+    },
+    {
+      "id": "electricity",
+      "title": "How much electricity do you use at home?",
+      "description": "Thailand's electricity grid emits 0.399 kg CO2e per kWh (2024 EPPO data)",
+      "icon": "⚡",
+      "category": "Home Energy",
+      "answers": [
+        {
+          "id": "very_high_usage",
+          "text": "Very high usage (>800 kWh/month)",
+          "value": 319.2,
+          "unit": "kg CO2e/month",
+          "visual": "highEnergyHouse",
+          "description": "Large home with AC, multiple appliances running constantly",
+          "calculation": "800 kWh × 0.399 kg CO2e/kWh",
+          "source": "EPPO 2024 electricity emission factor"
+        },
+        {
+          "id": "high_usage",
+          "text": "High usage (400-800 kWh/month)",
+          "value": 239.4,
+          "unit": "kg CO2e/month",
+          "visual": "mediumEnergyHouse",
+          "description": "Typical Thai household with air conditioning",
+          "calculation": "600 kWh × 0.399 kg CO2e/kWh",
+          "source": "EPPO 2024 electricity emission factor"
+        },
+        {
+          "id": "moderate_usage",
+          "text": "Moderate usage (200-400 kWh/month)",
+          "value": 119.7,
+          "unit": "kg CO2e/month",
+          "visual": "normalHouse",
+          "description": "Average Thai household electricity consumption",
+          "calculation": "300 kWh × 0.399 kg CO2e/kWh",
+          "source": "EPPO 2024 electricity emission factor"
+        },
+        {
+          "id": "low_usage",
+          "text": "Low usage (<200 kWh/month)",
+          "value": 79.8,
+          "unit": "kg CO2e/month",
+          "visual": "efficientHouse",
+          "description": "Energy-conscious household with efficient appliances",
+          "calculation": "200 kWh × 0.399 kg CO2e/kWh",
+          "source": "EPPO 2024 electricity emission factor"
+        },
+        {
+          "id": "minimal_usage",
+          "text": "Minimal usage (<100 kWh/month)",
+          "value": 39.9,
+          "unit": "kg CO2e/month",
+          "visual": "minimalHouse",
+          "description": "Very basic electricity usage, minimal appliances",
+          "calculation": "100 kWh × 0.399 kg CO2e/kWh",
+          "source": "EPPO 2024 electricity emission factor"
+        }
+      ]
+    },
+    {
+      "id": "diet",
+      "title": "What describes your diet in Thailand?",
+      "description": "Agriculture is Thailand's 2nd largest GHG source. Rice cultivation alone contributes 36.4 Mt CO2e annually",
+      "icon": "🍽️",
+      "category": "Food & Diet",
+      "answers": [
+        {
+          "id": "high_meat_diet",
+          "text": "High meat consumption (daily meat/fish)",
+          "value": 1.83,
+          "unit": "kg CO2e/day",
+          "visual": "meatPlate",
+          "description": "High protein diet with significant livestock impact",
+          "breakdown": "Protein: 0.63 + Dairy: 0.33 + Grains: 0.31 + Fruit: 0.47 + Vegetables: 0.09",
+          "source": "Thailand dietary category study"
+        },
+        {
+          "id": "moderate_meat_diet",
+          "text": "Moderate meat/fish (3-4 times per week)",
+          "value": 1.4,
+          "unit": "kg CO2e/day",
+          "visual": "balancedPlate",
+          "description": "Balanced Thai diet with some meat and seafood",
+          "reduction": "23% reduction from high-meat diet",
+          "source": "Thailand dietary category study (adjusted)"
+        },
+        {
+          "id": "low_meat_diet",
+          "text": "Low meat consumption (1-2 times per week)",
+          "value": 1.1,
+          "unit": "kg CO2e/day",
+          "visual": "pescatarianPlate",
+          "description": "Predominantly plant-based with occasional meat",
+          "reduction": "40% reduction from high-meat diet",
+          "source": "Thailand dietary category study (adjusted)"
+        },
+        {
+          "id": "vegetarian_diet",
+          "text": "Vegetarian (no meat, includes dairy/eggs)",
+          "value": 0.85,
+          "unit": "kg CO2e/day",
+          "visual": "vegetarianPlate",
+          "description": "Plant-based with dairy products, common in Thai Buddhist culture",
+          "reduction": "54% reduction from high-meat diet",
+          "source": "Thailand dietary category study (adjusted)"
+        },
+        {
+          "id": "vegan_diet",
+          "text": "Vegan (fully plant-based)",
+          "value": 0.57,
+          "unit": "kg CO2e/day",
+          "visual": "veganPlate",
+          "description": "Lowest impact diet - only grains, fruits, and vegetables",
+          "reduction": "69% reduction from high-meat diet",
+          "source": "Thailand dietary category study (adjusted)"
+        }
+      ]
+    },
+    {
+      "id": "waste_management",
+      "title": "How do you manage your waste?",
+      "description": "Waste sector accounts for 2.8% of Thailand's GHG emissions. Food waste is 39% of municipal solid waste",
+      "icon": "♻️",
+      "category": "Waste Management",
+      "answers": [
+        {
+          "id": "open_dump_landfill",
+          "text": "Most waste goes to landfill/open dump",
+          "value": 20.776,
+          "unit": "kg CO2e/month",
+          "visual": "landfill",
+          "description": "High methane emissions from decomposing waste",
+          "calculation": "20kg waste × 1.0388 kg CO2e/kg",
+          "source": "TGO waste management emission factors"
+        },
+        {
+          "id": "mixed_waste_some_separation",
+          "text": "Some waste separation and recycling",
+          "value": 12.5,
+          "unit": "kg CO2e/month",
+          "visual": "mixedWaste",
+          "description": "Partial recycling reduces overall emissions",
+          "reduction": "40% reduction from open dump",
+          "source": "TGO waste management emission factors (calculated)"
+        },
+        {
+          "id": "active_recycling",
+          "text": "Active recycling and composting",
+          "value": 6.65,
+          "unit": "kg CO2e/month",
+          "visual": "recycling",
+          "description": "Composting organic waste, recycling plastics and paper",
+          "calculation": "Mix of composting (0.3326) and recycling (0.4044)",
+          "source": "TGO waste management emission factors"
+        },
+        {
+          "id": "comprehensive_waste_management",
+          "text": "Comprehensive: reduce, reuse, recycle, compost",
+          "value": -15.3,
+          "unit": "kg CO2e/month",
+          "visual": "sustainableWaste",
+          "description": "Net negative emissions through avoided plastics and comprehensive management",
+          "calculation": "Including avoided plastics (-1.91 kg CO2e/kg)",
+          "source": "TGO waste management emission factors with avoided emissions"
+        },
+        {
+          "id": "zero_waste_lifestyle",
+          "text": "Zero waste lifestyle with reusable items",
+          "value": -25.8,
+          "unit": "kg CO2e/month",
+          "visual": "zeroWaste",
+          "description": "Maximum avoided emissions through plastic bag avoidance and minimal waste",
+          "calculation": "Including avoided HDPE bags (-6.7071 kg CO2e/kg)",
+          "source": "TGO waste management emission factors with maximum avoided emissions"
+        }
+      ]
+    },
+    {
+      "id": "consumption_habits",
+      "title": "How would you describe your consumption habits?",
+      "description": "Production and transport of goods contribute significantly to carbon emissions",
+      "icon": "🛍️",
+      "category": "Consumption",
+      "answers": [
+        {
+          "id": "frequent_shopping",
+          "text": "Frequent shopping for new items",
+          "value": 25.5,
+          "unit": "kg CO2e/month",
+          "visual": "shoppingBags",
+          "description": "High consumption lifestyle with regular purchases",
+          "impact": "Includes production, transport, and packaging emissions",
+          "source": "Estimated based on consumption patterns"
+        },
+        {
+          "id": "moderate_shopping",
+          "text": "Moderate shopping when needed",
+          "value": 15.2,
+          "unit": "kg CO2e/month",
+          "visual": "moderateShopping",
+          "description": "Balanced consumption with mindful purchasing",
+          "reduction": "40% reduction from frequent shopping",
+          "source": "Estimated based on consumption patterns"
+        },
+        {
+          "id": "minimal_shopping",
+          "text": "Buy only essentials, prefer local products",
+          "value": 8.7,
+          "unit": "kg CO2e/month",
+          "visual": "localMarket",
+          "description": "Focus on local Thai products reduces transport emissions",
+          "reduction": "66% reduction from frequent shopping",
+          "source": "Estimated with local preference adjustment"
+        },
+        {
+          "id": "secondhand_focus",
+          "text": "Prefer secondhand, repair, and reuse",
+          "value": 4.1,
+          "unit": "kg CO2e/month",
+          "visual": "secondhand",
+          "description": "Circular economy approach extending product lifecycles",
+          "reduction": "84% reduction from frequent shopping",
+          "source": "Estimated based on circular economy principles"
+        },
+        {
+          "id": "minimalist_lifestyle",
+          "text": "Minimalist lifestyle - own very little",
+          "value": 1.8,
+          "unit": "kg CO2e/month",
+          "visual": "minimalist",
+          "description": "Lowest consumption impact through intentional minimalism",
+          "reduction": "93% reduction from frequent shopping",
+          "source": "Estimated based on minimalist principles"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "carbon_champion": {
+      "max": 50,
+      "title": "Carbon Champion! 🌱",
+      "description": "Outstanding! Your lifestyle has a very low carbon footprint. You're making excellent choices aligned with Thailand's carbon neutrality goals by 2050.",
+      "color": "#22c55e",
+      "thaiContext": "You're contributing to Thailand's net-zero emissions target by 2065"
+    },
+    "eco_conscious": {
+      "max": 100,
+      "title": "Eco-Conscious Thai 🇹🇭",
+      "description": "Great work! Your carbon footprint is below average. You're supporting Thailand's climate action with room for improvement.",
+      "color": "#10b981",
+      "thaiContext": "Aligned with Thailand's sustainable development goals"
+    },
+    "getting_started": {
+      "max": 180,
+      "title": "Climate Action Starter 🌿",
+      "description": "You're on the right path! Your footprint is about average for Thailand with good opportunities to reduce emissions.",
+      "color": "#f59e0b",
+      "thaiContext": "Thailand's average per capita emissions are decreasing - you can be part of this trend"
+    },
+    "needs_improvement": {
+      "max": 280,
+      "title": "Time for Climate Action ⚡",
+      "description": "Your carbon footprint is above Thailand's average. Small changes can make a big difference for our environment.",
+      "color": "#ef4444",
+      "thaiContext": "Help Thailand achieve its Paris Agreement commitments"
+    },
+    "high_impact": {
+      "max": 999,
+      "title": "Urgent Action Needed 🌡️",
+      "description": "Your lifestyle has a high carbon impact. Consider making significant changes to support Thailand's climate goals.",
+      "color": "#dc2626",
+      "thaiContext": "Thailand needs everyone to reduce emissions for our 2050 carbon neutrality goal"
+    }
+  },
+  "tips": {
+    "transportation": [
+      "Use BTS, MRT, or public buses in Bangkok - they're efficient and reduce traffic emissions",
+      "Consider switching to an electric motorcycle - they're becoming popular in Thai cities",
+      "Walk or cycle for short trips - great for health and zero emissions",
+      "If you need a car, consider hybrid or electric vehicles supported by Thailand's EV policy"
+    ],
+    "electricity": [
+      "Use air conditioning efficiently - set to 25-26°C instead of lower temperatures",
+      "Replace old appliances with energy-efficient models - look for the Thai Energy Label",
+      "Consider rooftop solar panels - Thailand has excellent solar potential",
+      "Unplug devices when not in use - phantom power consumption adds up"
+    ],
+    "food": [
+      "Reduce food waste - 39% of Thailand's municipal waste is food waste",
+      "Choose local Thai produce to reduce transport emissions",
+      "Try more plant-based Thai dishes - many traditional recipes are naturally vegetarian",
+      "Support sustainable Thai agriculture by choosing organic or eco-certified products"
+    ],
+    "waste": [
+      "Separate waste properly - follow your local municipality's guidelines",
+      "Compost organic waste at home - great for Thai gardens and reduces methane",
+      "Avoid single-use plastics - bring reusable bags when shopping at markets",
+      "Participate in community recycling programs in your area"
+    ],
+    "consumption": [
+      "Shop at local Thai markets instead of imported goods when possible",
+      "Repair items instead of buying new - Thailand has many skilled repair services",
+      "Choose products with less packaging",
+      "Support Thai businesses committed to sustainability"
+    ]
+  }
+}
