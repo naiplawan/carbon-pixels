@@ -1,39 +1,50 @@
 # Thailand Waste Diary 🗂️🇹🇭
 
-A gamified daily waste tracking application designed specifically for Thailand, similar to a food diary but for garbage! Users scan waste items with AI recognition, earn carbon credits for sustainable disposal choices, and see their environmental impact visualized as trees saved. Built with official TGO emission factors and designed to support Thailand's 2050 carbon neutrality goal through engaging waste management gamification.
+A gamified daily waste tracking application designed specifically for Thailand, similar to a food diary but for garbage! Users track waste items through AI scanning simulation and manual entry, earn carbon credits for sustainable disposal choices, and visualize their environmental impact as trees saved. Built with official TGO emission factors to support Thailand's 2050 carbon neutrality goal.
 
-## ✨ Waste Diary Features
+> **Latest Update**: Major UX/UI improvements with full accessibility compliance, comprehensive history tracking, and streamlined dashboard design.
 
-### 📱 **AI-Powered Waste Scanning**
-- **Smart Recognition**: Point camera at waste items for instant AI identification
+## ✨ Key Features
+
+### 🔍 **Waste Tracking System**
+- **AI Scanner Demo**: Simulated AI waste recognition with educational focus
+- **Manual Entry** (Recommended): Accurate category selection with detailed guidance  
 - **8 Thai Waste Categories**: Food waste, plastic bottles/bags, paper, glass, metal, organic, e-waste
-- **Manual Entry Option**: Select categories manually if camera isn't available
-- **Local Context**: Includes Thai-specific items like coconut shells, traditional packaging
+- **Real-time Feedback**: Instant carbon credit calculation with disposal method comparison
+- **Local Context**: Thai-specific items, coconut shells, traditional packaging materials
 
-### 💚 **Carbon Credit System**
-- **Reward Good Choices**: Earn credits for recycling, composting, avoiding waste
-- **Penalize Bad Choices**: Lose credits for landfill disposal, single-use plastics
-- **TGO Official Data**: All emission factors from Thailand Greenhouse Gas Management Organization
-- **Negative Emissions**: Special rewards for plastic avoidance (-67 credits for avoided HDPE bags!)
+### 💚 **Carbon Credit Gamification**
+- **Scientific Basis**: Official TGO (Thailand Greenhouse Gas Management) emission factors
+- **Reward System**: +Credits for recycling, composting, waste avoidance
+- **Penalty System**: -Credits for landfill disposal, single-use plastics
+- **Impact Amplification**: Special rewards for plastic avoidance (-67 credits for avoided HDPE bags)
+- **Tree Equivalency**: 500 credits = 1 tree saved (clear impact visualization)
 
-### 🎮 **Gamification Elements**
-- **5-Level System**: From Eco Beginner 🌱 to Planet Protector 🌍
-- **Tree Comparisons**: 500 credits = 1 tree planted equivalent 🌳
-- **Daily Challenges**: Scan 5 items, recycle something, avoid plastic
-- **Achievements System**: First scan, daily tracker, recycling hero, tree saver
-- **Streak Tracking**: Build momentum with consecutive tracking days
+### 🎮 **Engaging User Experience**
+- **5-Level Progression**: Eco Beginner 🌱 → Green Warrior → Eco Champion → Climate Hero → Planet Protector 🛡️
+- **Achievement System**: First scan, daily tracker, recycling hero, tree saver milestones
+- **Progress Tracking**: Level advancement bars, streak counters, goal completion
+- **Thailand Ranking**: Percentile-based comparison with simulated national data
 
-### 📊 **Dashboard & Analytics**
-- **Daily Overview**: Today's waste, credits earned, tree equivalent
-- **Monthly Trends**: Calendar view showing waste patterns
-- **Impact Visualization**: CO₂ saved, energy equivalent, Thailand ranking
-- **Progress Tracking**: Level advancement, achievement unlocking
+### 📊 **Comprehensive Analytics**
+- **Daily Dashboard**: Today's credits, waste weight, tree equivalent, goal progress
+- **Historical Tracking**: Complete calendar view with entry details and trends
+- **Impact Insights**: CO₂ saved, energy equivalent (kWh), ranking progression  
+- **Collapsible Details**: Advanced metrics available on-demand to reduce cognitive load
 
-### 🇹🇭 **Thailand-Specific Context**
-- **Local Waste Categories**: Thai food waste, traditional packaging, local materials
-- **Cultural Integration**: Thai/English labels, Buddhist context for minimalism
+### ♿ **Accessibility Excellence** 
+- **WCAG 2.1 Compliance**: Full screen reader support, keyboard navigation
+- **Focus Management**: Proper tab order, focus trapping in modals
+- **ARIA Implementation**: Comprehensive labels, descriptions, live regions
+- **Keyboard Support**: ESC key modal closing, arrow key navigation
+- **Visual Accessibility**: High contrast mode, reduced motion preferences
+
+### 🇹🇭 **Thailand Cultural Integration**
+- **Dual Language**: Thai/English labels throughout interface
+- **Local Waste Categories**: Thailand-specific materials and disposal methods
+- **Cultural Context**: Buddhist minimalism principles, community responsibility
 - **Market Integration**: Tips for Thai markets, local recycling programs
-- **Climate Goal Connection**: Links to Thailand's 2050 carbon neutrality target
+- **National Goals**: Direct connection to Thailand's 2050 carbon neutrality target
 
 ## 🚀 Getting Started
 
@@ -46,7 +57,7 @@ A gamified daily waste tracking application designed specifically for Thailand, 
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/naiplawan/carbon-pixels.git
 cd carbon-pixels
 ```
 
@@ -62,36 +73,86 @@ pnpm dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+### Quick Start Guide
+
+1. **Landing Page**: Overview of the waste tracking system and carbon credit concept
+2. **Diary Dashboard**: Main interface with today's stats and action buttons
+3. **Manual Entry**: Recommended method for accurate waste categorization  
+4. **AI Scanner Demo**: Educational simulation of waste recognition technology
+5. **History View**: Comprehensive tracking with calendar interface and insights
+
 ## 🛠️ Development Commands
 
 ```bash
 # Development
 pnpm dev              # Start development server
-pnpm build            # Build for production
+pnpm build            # Build for production  
 pnpm start            # Start production server
 pnpm lint             # Run ESLint
 pnpm type-check       # Run TypeScript type checking
 ```
 
+## 📱 Application Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx                    # Landing page with app overview
+│   ├── diary/
+│   │   ├── page.tsx               # Main dashboard with stats & actions
+│   │   ├── manual/page.tsx        # Manual waste entry form
+│   │   └── history/page.tsx       # Historical tracking calendar
+│   ├── calculator/page.tsx        # Carbon footprint calculator
+│   └── globals.css                # Global styles with notebook theme
+├── components/
+│   ├── WasteScanner.tsx           # AI scanning modal with accessibility
+│   └── GameificationPanel.tsx    # Level progress and achievements
+└── data/
+    └── thailand-waste-categories.json # TGO emission factors & game data
+```
+
 ## 📱 Technology Stack
 
-- **Frontend**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS with custom notebook theme
-- **API**: Next.js API Routes
-- **Canvas**: HTML5 Canvas with custom drawing functions
-- **Fonts**: Patrick Hand (handwritten) and Kalam (sketch)
-- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
+- **Frontend**: Next.js 15 with App Router and React 19
+- **Language**: TypeScript (strict mode, full type safety)
+- **Styling**: Tailwind CSS with custom "notebook paper" aesthetic
+- **State Management**: React hooks with localStorage persistence
+- **Accessibility**: WCAG 2.1 AA compliant, full ARIA implementation
+- **Icons**: Lucide React with custom emoji integration  
+- **Fonts**: Patrick Hand (handwritten) and Kalam (sketch) for authentic feel
+- **Development**: ESLint, Prettier, TypeScript strict mode
 
 ## 🎨 Design Philosophy
 
-The application follows a "hand-drawn notebook" aesthetic to make the carbon footprint calculation feel personal and engaging rather than clinical. Key design elements include:
+The application uses a "hand-drawn notebook" aesthetic to make waste tracking feel personal and engaging rather than clinical. This design approach transforms environmental consciousness into an accessible, diary-like experience.
 
-- Paper-like background with subtle textures
-- Hand-drawn style animations and illustrations
-- Handwritten fonts for a personal touch
-- Sketched UI elements with drop shadows
-- Progressive visual storytelling through the canvas
+### Visual Design System
+- **Paper Texture**: Warm, notebook-style backgrounds with subtle aging effects
+- **Handwritten Typography**: Patrick Hand and Kalam fonts for authentic personal feel
+- **Sketch Elements**: Dashed borders, drop shadows, hand-drawn style animations
+- **Color Psychology**: Green earth tones with high contrast for accessibility
+- **Progressive Disclosure**: Information organized to reduce cognitive overload
+
+### User Experience Principles
+- **Mobile-First**: Touch-friendly interactions designed for smartphone usage
+- **Accessibility-First**: WCAG 2.1 AA compliance from initial design phase  
+- **Clarity Over Cleverness**: Simple, obvious interactions over complex features
+- **Cultural Sensitivity**: Thai language integration and local context awareness
+- **Gamification Balance**: Motivating without overwhelming, educational focus
+
+## 🆕 Recent Improvements (v2.0)
+
+### Critical UX/UI Fixes Implemented
+- ✅ **Missing History Page**: Complete historical tracking with calendar view and insights
+- ✅ **Modal Accessibility**: Full ARIA implementation, focus management, keyboard navigation  
+- ✅ **Dashboard Overload**: Streamlined layout with collapsible details section
+- ✅ **AI Scanner Clarity**: Clear demo mode indicators and user expectation management
+
+### Accessibility Enhancements
+- **Focus Management**: Automatic focus on modal open, focus trapping, ESC key support
+- **Screen Reader Support**: Comprehensive ARIA labels, descriptions, live regions
+- **Keyboard Navigation**: Full tab order, arrow key support, accessible form controls
+- **Visual Indicators**: Clear button states, loading indicators, validation feedback
 
 ## 🌱 Thailand Carbon Footprint Calculation
 
@@ -140,21 +201,48 @@ The scoring system uses official TGO and EPPO emission factors across five key a
 3. **Results Summary**: Personalized score, visual story, and actionable tips
 4. **Social Sharing**: Ability to share results and journey
 
-## ♿ Accessibility Features
+## 🔧 Data & Persistence
 
-- Skip to main content link
-- Semantic HTML structure with proper headings
-- ARIA labels and descriptions
-- Keyboard navigation support
-- Screen reader announcements
-- High contrast mode support
-- Reduced motion preferences
-- Mobile-first responsive design
+### Local Storage Strategy
+- **Waste Entries**: Complete tracking history with timestamps and metadata
+- **Carbon Credits**: Running total with transaction history  
+- **User Progress**: Level advancement, achievements, streak tracking
+- **Preferences**: Theme settings, accessibility options
 
-## 🔧 API Endpoints
+### Data Structure Example
+```javascript
+// Waste entry format
+{
+  id: "1641234567890",
+  categoryId: "plastic_bags", 
+  categoryName: "Plastic Bags",
+  disposal: "avoided",
+  weight: 0.1,
+  carbonCredits: 67,
+  timestamp: "2024-01-01T10:30:00.000Z"
+}
+```
 
-- `GET /api/questions` - Fetch all questions and scoring data
-- `POST /api/calculate` - Calculate carbon footprint from answers
+### API Endpoints
+- `GET /api/questions` - Carbon footprint calculator questions and scoring
+- `POST /api/calculate` - Calculate carbon footprint from user answers
+
+## ♿ Accessibility Compliance
+
+### WCAG 2.1 AA Standards Met
+- **Perceivable**: High contrast ratios, scalable text, alt text for images
+- **Operable**: Full keyboard navigation, no seizure-inducing content
+- **Understandable**: Clear language, consistent navigation, error identification  
+- **Robust**: Semantic HTML, ARIA attributes, cross-browser compatibility
+
+### Specific Features Implemented
+- Skip to main content links on all pages
+- Semantic HTML structure with proper heading hierarchy
+- Comprehensive ARIA labels and descriptions
+- Full keyboard navigation with visible focus indicators
+- Screen reader announcements for dynamic content
+- High contrast mode and reduced motion support
+- Mobile-first responsive design with touch accessibility
 
 ## 🎨 Customization
 
@@ -168,14 +256,58 @@ The application uses CSS custom properties and Tailwind utilities for easy themi
 }
 ```
 
+## 🚀 Future Enhancement Roadmap
+
+### Phase 3: Advanced Features
+- **Real AI Integration**: TensorFlow.js waste recognition with camera API
+- **Cloud Synchronization**: Multi-device support with Supabase backend
+- **Social Features**: Community challenges, leaderboards, friend comparisons
+- **Advanced Analytics**: Weekly/monthly trends, carbon footprint forecasting
+
+### Phase 4: Platform Expansion  
+- **Progressive Web App**: Offline functionality, app-like experience
+- **Thai Government Integration**: Official waste management program connections
+- **Corporate Partnerships**: Business waste tracking, sustainability reporting
+- **Educational Content**: Gamified learning modules about climate change
+
+## 🤝 Contributing
+
+Contributions are welcome! Areas where help is especially appreciated:
+
+- **Thai Localization**: Native Thai language improvements and cultural context
+- **Accessibility Testing**: Screen reader testing, keyboard navigation validation
+- **Performance Optimization**: Bundle size reduction, loading speed improvements  
+- **Data Science**: Enhanced carbon credit calculations, waste category expansion
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make changes with proper TypeScript typing
+4. Test accessibility compliance with screen readers
+5. Submit a Pull Request with detailed description
+
 ## 📄 License
 
 This project is open source and available under the MIT License.
 
-## 🤝 Contributing
+## 🌍 Environmental Impact & Mission
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This waste tracking application transforms abstract environmental concepts into concrete, actionable daily habits. By gamifying sustainable waste disposal choices, it makes environmental consciousness accessible and engaging for Thai users.
 
-## 🌍 Environmental Impact
+### Supporting Thailand's Climate Goals
+- Directly aligned with Thailand's 2050 carbon neutrality commitment
+- Uses official TGO emission factors for scientific accuracy
+- Promotes circular economy principles through gamified rewards
+- Builds environmental awareness through hands-on daily tracking
 
-This calculator aims to educate users about their carbon footprint and provide actionable steps toward more sustainable living. Every interaction is designed to build awareness and inspire positive environmental choices.
+### Educational Philosophy
+Every interaction is designed to:
+- Build awareness about waste's environmental impact
+- Inspire positive environmental choices through clear feedback
+- Make sustainability engaging rather than overwhelming
+- Connect individual actions to national climate goals
+
+---
+
+**Made with 💚 for Thailand's sustainable future**  
+*Supporting the path to carbon neutrality by 2050, one waste entry at a time.*
