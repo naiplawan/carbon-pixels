@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import wasteCategories from '@/data/thailand-waste-categories.json'
 
 interface WasteScannerProps {
@@ -27,6 +27,57 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
   const [showResults, setShowResults] = useState(false)
   const [scanAnimation, setScanAnimation] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Focus management and keyboard handling
+  useEffect(() => {
+    // Focus the close button when modal opens
+    if (closeButtonRef.current) {
+      closeButtonRef.current.focus()
+    }
+
+    // Handle Escape key
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    // Trap focus within modal
+    const handleTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return
+
+      const modal = modalRef.current
+      if (!modal) return
+
+      const focusableElements = modal.querySelectorAll(
+        'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0] as HTMLElement
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
+
+      if (event.shiftKey) {
+        if (document.activeElement === firstElement) {
+          event.preventDefault()
+          lastElement.focus()
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          event.preventDefault()
+          firstElement.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    document.addEventListener('keydown', handleTab)
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('keydown', handleTab)
+    }
+  }, [onClose])
 
   const simulateScanning = () => {
     setIsScanning(true)
@@ -70,18 +121,32 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="scanner-title"
+      aria-describedby="scanner-description"
+    >
+      <div 
+        ref={modalRef}
+        className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+      >
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-handwritten text-ink">Waste Scanner 📷</h2>
+            <h2 id="scanner-title" className="text-2xl font-handwritten text-ink">Waste Scanner 📷</h2>
             <button
+              ref={closeButtonRef}
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-xl"
+              className="text-gray-500 hover:text-gray-700 text-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded"
+              aria-label="Close scanner modal"
             >
               ✕
             </button>
+          </div>
+          <div id="scanner-description" className="sr-only">
+            Scan or manually select waste items to track your environmental impact
           </div>
 
           {!showResults ? (
@@ -89,22 +154,32 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
               {/* Camera View */}
               <div className="relative mb-6">
                 <div className="bg-gray-900 rounded-lg h-64 flex items-center justify-center relative overflow-hidden">
+                  {/* Simulation Notice */}
+                  <div className="absolute top-2 left-2 right-2">
+                    <div className="bg-yellow-400 text-black text-xs font-sketch px-2 py-1 rounded flex items-center gap-1">
+                      <span>⚠️</span>
+                      <span>Demo Mode - Simulated AI Recognition</span>
+                    </div>
+                  </div>
+
                   {!isScanning ? (
                     <div className="text-center text-white">
                       <div className="text-4xl mb-4">📷</div>
-                      <p className="mb-4">Point camera at waste item</p>
+                      <p className="mb-2">Demo: AI Waste Recognition</p>
+                      <p className="text-sm opacity-75 mb-4">Currently simulated for demonstration</p>
                       <button
                         onClick={simulateScanning}
-                        className="bg-green-500 text-white px-6 py-3 rounded-lg font-sketch hover:bg-green-600"
+                        className="bg-green-500 text-white px-6 py-3 rounded-lg font-sketch hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        aria-label="Start AI waste scanning simulation"
                       >
-                        Start Scanning
+                        🚀 Try Demo Scan
                       </button>
                     </div>
                   ) : (
                     <div className="text-center text-white">
                       <div className="text-4xl mb-4 animate-pulse">🔍</div>
-                      <p className="mb-2">AI Scanning in progress...</p>
-                      <p className="text-sm opacity-75">Identifying waste type</p>
+                      <p className="mb-2">Simulating AI Recognition...</p>
+                      <p className="text-sm opacity-75">Demo: Random category will be selected</p>
                       
                       {/* Scanning animation */}
                       <div className="absolute inset-0">
@@ -128,7 +203,12 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
 
               {/* Manual Category Selection */}
               <div className="border-t pt-4">
-                <h3 className="font-sketch text-ink mb-3">Or select manually:</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="font-sketch text-ink">👆 Recommended: Select manually</h3>
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-sketch">
+                    Most Accurate
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   {wasteCategories.wasteCategories.map((category) => (
                     <button
@@ -137,7 +217,8 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                         setDetectedCategory(category)
                         setShowResults(true)
                       }}
-                      className="p-3 border rounded-lg text-center hover:bg-gray-50 transition-colors"
+                      className="p-3 border rounded-lg text-center hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      aria-label={`Select ${category.name} waste category`}
                     >
                       <div className="text-2xl mb-1">{category.icon}</div>
                       <div className="text-xs font-sketch">{category.name}</div>
@@ -159,11 +240,13 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
 
               {/* Disposal Method Selection */}
               <div className="mb-4">
-                <label className="block font-sketch text-ink mb-2">How will you dispose of this?</label>
+                <label htmlFor="disposal-method" className="block font-sketch text-ink mb-2">How will you dispose of this?</label>
                 <select
+                  id="disposal-method"
                   value={selectedDisposal}
                   onChange={(e) => setSelectedDisposal(e.target.value)}
-                  className="w-full p-3 border rounded-lg font-sketch focus:ring-2 focus:ring-green-500"
+                  className="w-full p-3 border rounded-lg font-sketch focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  aria-describedby="disposal-help"
                 >
                   <option value="">Select disposal method...</option>
                   {Object.keys(detectedCategory.carbonCredits).map((method) => (
@@ -173,20 +256,28 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                     </option>
                   ))}
                 </select>
+                <div id="disposal-help" className="sr-only">
+                  Choose how you plan to dispose of this waste item. Different methods earn different carbon credits.
+                </div>
               </div>
 
               {/* Weight Input */}
               <div className="mb-4">
-                <label className="block font-sketch text-ink mb-2">Estimated weight (kg)</label>
+                <label htmlFor="weight-input" className="block font-sketch text-ink mb-2">Estimated weight (kg)</label>
                 <input
+                  id="weight-input"
                   type="number"
                   step="0.1"
                   min="0.1"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
                   placeholder="0.5"
-                  className="w-full p-3 border rounded-lg font-sketch focus:ring-2 focus:ring-green-500"
+                  className="w-full p-3 border rounded-lg font-sketch focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  aria-describedby="weight-help"
                 />
+                <div id="weight-help" className="sr-only">
+                  Enter the estimated weight of this waste item in kilograms.
+                </div>
               </div>
 
               {/* Credits Preview */}
@@ -222,18 +313,26 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                     setSelectedDisposal('')
                     setWeight('')
                   }}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 font-sketch rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 font-sketch rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  aria-label="Clear current selection and scan again"
                 >
                   Scan Again
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={!selectedDisposal || !weight}
-                  className="flex-1 px-4 py-3 bg-green-leaf text-white font-sketch rounded-lg hover:bg-green-600 disabled:opacity-50"
+                  className="flex-1 px-4 py-3 bg-green-leaf text-white font-sketch rounded-lg hover:bg-green-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed"
+                  aria-label={`Save waste entry for ${detectedCategory?.name || 'selected item'}`}
+                  aria-describedby={!selectedDisposal || !weight ? 'save-requirements' : undefined}
                 >
                   Save Entry
                 </button>
               </div>
+              {(!selectedDisposal || !weight) && (
+                <div id="save-requirements" className="sr-only">
+                  To save this entry, please select a disposal method and enter the weight.
+                </div>
+              )}
             </>
           )}
         </div>
