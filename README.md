@@ -30,7 +30,7 @@ A gamified daily waste tracking application designed specifically for Thailand, 
 - **Progress Tracking**: Level advancement, achievement unlocking
 
 ### 🇹🇭 **Thailand-Specific Context**
-- **Local Waste Categories**: Thai food waste, traditional packaging, local materials  
+- **Local Waste Categories**: Thai food waste, traditional packaging, local materials
 - **Cultural Integration**: Thai/English labels, Buddhist context for minimalism
 - **Market Integration**: Tips for Thai markets, local recycling programs
 - **Climate Goal Connection**: Links to Thailand's 2050 carbon neutrality target
@@ -39,7 +39,7 @@ A gamified daily waste tracking application designed specifically for Thailand, 
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (preferred) or npm
 
 ### Installation
@@ -47,7 +47,7 @@ A gamified daily waste tracking application designed specifically for Thailand, 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd co2-tracker
+cd carbon-pixels
 ```
 
 2. Install dependencies:
@@ -99,7 +99,7 @@ The scoring system uses official TGO and EPPO emission factors across five key a
 
 ### 1. **Transportation** (Thailand-specific)
 - Heavy-duty diesel: 1.1988 kg CO₂e/km
-- Public bus: 0.7073 kg CO₂e/km  
+- Public bus: 0.7073 kg CO₂e/km
 - Personal car: 0.30947 kg CO₂e/km
 - Pickup truck: 0.23452 kg CO₂e/km (popular in Thailand)
 - Motorcycle: 0.0425 kg CO₂e/km (52.81% of Thai vehicles)
@@ -163,7 +163,7 @@ The application uses CSS custom properties and Tailwind utilities for easy themi
 ```css
 :root {
   --paper: 48 20% 97%;
-  --ink: 222.2 47% 11%; 
+  --ink: 222.2 47% 11%;
   --pencil: 217.2 32.6% 17.5%;
 }
 ```
