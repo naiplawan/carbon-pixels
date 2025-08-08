@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Kalam:wght@300;400;700&display=swap');
+/* Font CSS import moved to layout.tsx for better loading performance */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,7 +98,43 @@
     }
   }
 
-  /* Dark mode support */
+  /* Mobile performance optimizations */
+  @media (max-width: 768px) {
+    /* Reduce repaints on mobile */
+    .notebook-page {
+      background-attachment: scroll;
+    }
+    
+    /* Optimize touch interactions */
+    .sketch-element {
+      transform: translateZ(0); /* Hardware acceleration */
+      will-change: transform; /* Prepare for animations */
+    }
+    
+    /* Reduce shadow complexity on mobile */
+    .handwritten-text {
+      text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Optimize gradients for mobile GPUs */
+    .bg-gradient-to-r {
+      background-size: 200% 100%;
+      background-position: 0% 0%;
+    }
+  }
+
+  /* Performance hints for browsers */
+  .modal-backdrop {
+    contain: layout style paint;
+    will-change: opacity;
+  }
+  
+  .scanner-camera {
+    contain: layout style paint size;
+    transform: translateZ(0);
+  }
+
+  /* Dark mode support with performance considerations */
   @media (prefers-color-scheme: dark) {
     .notebook-page {
       @apply bg-gray-900 text-gray-100;
@@ -118,5 +154,15 @@
     .bg-white\/70 {
       @apply bg-gray-800/70;
     }
+  }
+
+  /* Critical rendering path optimization */
+  .above-fold {
+    contain: layout style;
+  }
+  
+  .below-fold {
+    content-visibility: auto;
+    contain-intrinsic-size: 300px;
   }
 }

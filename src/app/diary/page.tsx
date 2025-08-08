@@ -1,9 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react'
 import Link from 'next/link'
-import WasteScanner from '@/components/WasteScanner'
-import GameificationPanel from '@/components/GameificationPanel'
+import { storage, preloadStorageData } from '@/lib/storage-performance'
+import { PWAManager, OfflineIndicator, usePWA } from '@/components/PWAManager'
+import { notificationManager } from '@/lib/notifications'
+import { performanceMonitor, usePerformanceTracking } from '@/lib/performance-monitor'
+
+// Lazy load heavy components
+const WasteScanner = lazy(() => import('@/components/WasteScanner'))
+const GameificationPanel = lazy(() => import('@/components/GameificationPanel'))
+const NotificationManager = lazy(() => import('@/components/NotificationManager'))
+const SocialShareManager = lazy(() => import('@/components/SocialShareManager'))
+const CommunityPanel = lazy(() => import('@/components/CommunityPanelEnhanced'))
 
 interface WasteEntry {
   id: string
@@ -22,52 +31,172 @@ export default function WasteDiaryPage() {
   const [showScanner, setShowScanner] = useState(false)
   const [dailyGoal, setDailyGoal] = useState(100)
   const [currentLevel, setCurrentLevel] = useState(1)
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false)
+  const [showSocialShare, setShowSocialShare] = useState(false)
+  const [showCommunity, setShowCommunity] = useState(false)
+  const [allWasteEntries, setAllWasteEntries] = useState<WasteEntry[]>([])
+  
+  const { showAchievement } = usePWA()
+  const { trackWasteAction, getComponentMetrics } = usePerformanceTracking('WasteDiary')
 
+  // Preload data on component mount
   useEffect(() => {
-    // Load saved entries from localStorage
-    const savedEntries = localStorage.getItem('wasteEntries')
-    if (savedEntries) {
-      const entries = JSON.parse(savedEntries)
-      const today = new Date().toDateString()
-      const todayEntries = entries.filter((entry: WasteEntry) => 
-        new Date(entry.timestamp).toDateString() === today
-      )
-      setTodayEntries(todayEntries)
-    }
-
-    // Load total credits
-    const savedCredits = localStorage.getItem('carbonCredits')
-    if (savedCredits) {
-      setTotalCredits(parseInt(savedCredits))
-    }
+    preloadStorageData()
   }, [])
 
-  const calculateTodayCredits = () => {
+  // Load data asynchronously without blocking render
+  useEffect(() => {
+    let isMounted = true
+    
+    const loadData = async () => {
+      const endTiming = trackWasteAction('data_load')
+      
+      try {
+        const [todayEntries, totalCredits, allEntries] = await Promise.all([
+          storage.getTodayEntries(),
+          storage.getItem('carbonCredits', 0),
+          storage.getItem('wasteEntries', [])
+        ])
+        
+        if (isMounted) {
+          setTodayEntries(todayEntries)
+          setTotalCredits(totalCredits)
+          setAllWasteEntries(allEntries)
+        }
+        
+        endTiming() // Track data loading performance
+      } catch (error) {
+        console.error('Failed to load diary data:', error)
+        endTiming() // Still track timing even on error
+      }
+    }
+
+    loadData()
+    
+    return () => {
+      isMounted = false
+    }
+  }, [trackWasteAction])
+
+  // Memoized calculations to prevent re-computation
+  const todayCredits = useMemo(() => {
     return todayEntries.reduce((sum, entry) => sum + entry.carbonCredits, 0)
-  }
+  }, [todayEntries])
 
-  const calculateTodayWaste = () => {
+  const todayWaste = useMemo(() => {
     return todayEntries.reduce((sum, entry) => sum + entry.weight, 0)
-  }
+  }, [todayEntries])
 
-  const getTreeEquivalent = () => {
+  const treeEquivalent = useMemo(() => {
     return Math.floor(totalCredits / 500) // 500 credits = 1 tree
-  }
+  }, [totalCredits])
 
-  const addWasteEntry = (entry: WasteEntry) => {
-    const updatedEntries = [...todayEntries, entry]
-    setTodayEntries(updatedEntries)
-    setTotalCredits(totalCredits + entry.carbonCredits)
+  const progressToGoal = useMemo(() => {
+    return Math.min((todayCredits / dailyGoal) * 100, 100)
+  }, [todayCredits, dailyGoal])
 
-    // Save to localStorage
-    const allEntries = JSON.parse(localStorage.getItem('wasteEntries') || '[]')
-    allEntries.push(entry)
-    localStorage.setItem('wasteEntries', JSON.stringify(allEntries))
-    localStorage.setItem('carbonCredits', (totalCredits + entry.carbonCredits).toString())
-  }
+  // Optimized entry addition with async storage and notifications
+  const addWasteEntry = useCallback(async (entry: WasteEntry) => {
+    const endTiming = trackWasteAction('add_entry')
+    const previousCredits = totalCredits
+
+    // Optimistic UI update
+    setTodayEntries(prev => [...prev, entry])
+    setTotalCredits(prev => prev + entry.carbonCredits)
+
+    try {
+      // Async storage operation
+      await storage.addWasteEntry(entry)
+      
+      // Check for achievements and notify
+      await checkForAchievements(previousCredits, totalCredits + entry.carbonCredits, entry)
+      
+      // Schedule engagement notifications
+      notificationManager.scheduleEngagementNotifications()
+      
+      endTiming() // Track successful entry addition
+    } catch (error) {
+      console.error('Failed to save waste entry:', error)
+      // Rollback on error
+      setTodayEntries(prev => prev.filter(e => e.id !== entry.id))
+      setTotalCredits(prev => prev - entry.carbonCredits)
+      endTiming() // Track timing even on error
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalCredits, showAchievement])
+
+  // Achievement checking function
+  const checkForAchievements = useCallback(async (prevCredits: number, newCredits: number, entry: WasteEntry) => {
+    const achievements = []
+
+    // First entry achievement
+    if (todayEntries.length === 0) {
+      achievements.push({
+        id: 'first-entry',
+        title: 'First Entry Today! 🌱',
+        description: 'Great start! You\'ve logged your first waste item today.',
+        credits: entry.carbonCredits
+      })
+    }
+
+    // Tree milestone achievements
+    const prevTrees = Math.floor(prevCredits / 500)
+    const newTrees = Math.floor(newCredits / 500)
+    
+    if (newTrees > prevTrees) {
+      achievements.push({
+        id: `tree-${newTrees}`,
+        title: `${newTrees} Tree${newTrees > 1 ? 's' : ''} Saved! 🌳`,
+        description: `Amazing! You've saved ${newTrees} tree equivalent${newTrees > 1 ? 's' : ''} through your waste tracking!`,
+        credits: newCredits
+      })
+    }
+
+    // Credit milestones
+    const milestones = [100, 500, 1000, 2500, 5000, 10000]
+    for (const milestone of milestones) {
+      if (prevCredits < milestone && newCredits >= milestone) {
+        achievements.push({
+          id: `credits-${milestone}`,
+          title: `${milestone} Credits Earned! 🎉`,
+          description: `You've reached ${milestone} carbon credits! Keep up the great work!`,
+          credits: newCredits
+        })
+      }
+    }
+
+    // Positive impact achievement (for recycling/composting)
+    if (entry.carbonCredits > 0) {
+      achievements.push({
+        id: 'positive-impact',
+        title: 'Positive Impact! 💚',
+        description: `Great choice! You earned ${entry.carbonCredits} credits for sustainable disposal.`,
+        credits: entry.carbonCredits
+      })
+    }
+
+    // Show achievements
+    for (const achievement of achievements) {
+      if (showAchievement) {
+        await showAchievement(achievement)
+      }
+      
+      // Also show browser notification if available
+      await notificationManager.showNotification({
+        id: achievement.id,
+        title: achievement.title,
+        body: achievement.description,
+        requiresPermission: true,
+        tag: 'achievement'
+      })
+    }
+  }, [todayEntries.length, showAchievement])
 
   return (
     <div className="notebook-page min-h-screen">
+      <PWAManager />
+      <OfflineIndicator />
+      
       <div className="max-w-6xl mx-auto p-4 sm:p-8">
         {/* Header */}
         <header className="text-center mb-8">
@@ -77,25 +206,74 @@ export default function WasteDiaryPage() {
           <p className="text-lg text-pencil font-sketch">
             Track your daily waste, earn carbon credits, save the planet! 🌱
           </p>
+          
+          <div className="flex flex-wrap gap-2 justify-center mt-4">
+            <button
+              onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-sketch"
+            >
+              🔔 Notifications
+            </button>
+            <button
+              onClick={() => setShowSocialShare(!showSocialShare)}
+              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-sketch"
+            >
+              🚀 Share Impact
+            </button>
+            <button
+              onClick={() => setShowCommunity(!showCommunity)}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-sketch"
+            >
+              🌍 Community
+            </button>
+          </div>
         </header>
+
+        {/* Notification Settings */}
+        {showNotificationSettings && (
+          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-lg mb-6"></div>}>
+            <NotificationManager />
+          </Suspense>
+        )}
+
+        {/* Social Share Manager */}
+        {showSocialShare && (
+          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-lg mb-6"></div>}>
+            <SocialShareManager 
+              totalCredits={totalCredits}
+              wasteEntries={allWasteEntries}
+              onClose={() => setShowSocialShare(false)}
+            />
+          </Suspense>
+        )}
+
+        {/* Community Panel */}
+        {showCommunity && (
+          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-64 rounded-lg mb-6"></div>}>
+            <CommunityPanel 
+              totalCredits={totalCredits}
+              onClose={() => setShowCommunity(false)}
+            />
+          </Suspense>
+        )}
 
         {/* Primary Stats - Focus on Today */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white/90 p-6 rounded-lg border-2 border-dashed border-green-300 text-center">
             <div className="text-4xl mb-3">📊</div>
             <div className="text-3xl font-handwritten text-green-600 mb-1">
-              {calculateTodayCredits()}
+              {todayCredits}
             </div>
             <div className="text-lg text-green-700 font-sketch">Today&apos;s Credits</div>
             <div className="text-sm text-green-600 mt-1">
-              {calculateTodayWaste().toFixed(1)}kg waste tracked
+              {todayWaste.toFixed(1)}kg waste tracked
             </div>
           </div>
 
           <div className="bg-white/90 p-6 rounded-lg border-2 border-dashed border-blue-300 text-center">
             <div className="text-4xl mb-3">🌳</div>
             <div className="text-3xl font-handwritten text-blue-600 mb-1">
-              {getTreeEquivalent()}
+              {treeEquivalent}
             </div>
             <div className="text-lg text-blue-700 font-sketch">Trees Saved</div>
             <div className="text-sm text-blue-600 mt-1">
@@ -174,34 +352,36 @@ export default function WasteDiaryPage() {
             )}
           </div>
 
-          {/* Gamification Panel */}
-          <GameificationPanel 
-            totalCredits={totalCredits}
-            todayCredits={calculateTodayCredits()}
-            level={currentLevel}
-            achievements={[]}
-          />
+          {/* Gamification Panel with Suspense */}
+          <Suspense fallback={<GameificationSkeleton />}>
+            <GameificationPanel 
+              totalCredits={totalCredits}
+              todayCredits={todayCredits}
+              level={currentLevel}
+              achievements={[]}
+            />
+          </Suspense>
         </div>
 
         {/* Daily Progress - Simplified */}
-        {calculateTodayCredits() > 0 && (
+        {todayCredits > 0 && (
           <div className="mt-8">
             <div className="bg-white/70 p-4 rounded-lg border-2 border-dashed border-pencil">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-handwritten text-ink">Daily Goal Progress</h3>
                 <span className="text-pencil font-sketch text-sm">
-                  {calculateTodayCredits()} / {dailyGoal} Credits
+                  {todayCredits} / {dailyGoal} Credits
                 </span>
               </div>
               
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${Math.min((calculateTodayCredits() / dailyGoal) * 100, 100)}%` }}
+                  style={{ width: `${progressToGoal}%` }}
                 />
               </div>
 
-              {calculateTodayCredits() >= dailyGoal && (
+              {todayCredits >= dailyGoal && (
                 <div className="mt-3 text-center p-3 bg-green-50 rounded-lg">
                   <div className="text-lg">🎉</div>
                   <div className="font-handwritten text-green-800 text-sm">Daily Goal Achieved!</div>
@@ -225,7 +405,7 @@ export default function WasteDiaryPage() {
                 CO₂ Impact Today
               </div>
               <div className="text-lg font-semibold text-green-600">
-                {(calculateTodayCredits() * 0.001).toFixed(2)}kg saved
+                {(todayCredits * 0.001).toFixed(2)}kg saved
               </div>
             </div>
 
@@ -252,18 +432,21 @@ export default function WasteDiaryPage() {
         </details>
       </div>
 
-      {/* Waste Scanner Modal */}
+      {/* Waste Scanner Modal with Suspense */}
       {showScanner && (
-        <WasteScanner 
-          onClose={() => setShowScanner(false)}
-          onSave={addWasteEntry}
-        />
+        <Suspense fallback={<ScannerSkeleton />}>
+          <WasteScanner 
+            onClose={() => setShowScanner(false)}
+            onSave={addWasteEntry}
+          />
+        </Suspense>
       )}
     </div>
   )
 }
 
-function getCategoryIcon(categoryId: string): string {
+// Performance: Memoized category icon lookup
+const getCategoryIcon = (() => {
   const iconMap: { [key: string]: string } = {
     'food_waste': '🍎',
     'plastic_bottles': '🍾',
@@ -274,5 +457,31 @@ function getCategoryIcon(categoryId: string): string {
     'organic_waste': '🍃',
     'electronic_waste': '📱'
   }
-  return iconMap[categoryId] || '🗑️'
+  return (categoryId: string): string => iconMap[categoryId] || '🗑️'
+})()
+
+// Loading skeleton components for better perceived performance
+function GameificationSkeleton() {
+  return (
+    <div className="bg-white/70 p-6 rounded-lg border-2 border-dashed border-pencil animate-pulse">
+      <div className="h-6 bg-gray-200 rounded mb-4"></div>
+      <div className="space-y-3">
+        <div className="h-16 bg-gray-100 rounded"></div>
+        <div className="h-16 bg-gray-100 rounded"></div>
+        <div className="h-16 bg-gray-100 rounded"></div>
+      </div>
+    </div>
+  )
+}
+
+function ScannerSkeleton() {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-md w-full p-6 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded mb-4"></div>
+        <div className="h-64 bg-gray-100 rounded mb-4"></div>
+        <div className="h-10 bg-gray-100 rounded"></div>
+      </div>
+    </div>
+  )
 }
