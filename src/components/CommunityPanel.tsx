@@ -168,7 +168,7 @@ export function CommunityPanel({
         </div>
         
         <div className="text-sm text-blue-600">
-          You're ahead of {ranking.percentage.toFixed(0)}% of Thai eco-warriors!
+          You&apos;re ahead of {ranking.percentage.toFixed(0)}% of Thai eco-warriors!
         </div>
       </div>
 
@@ -394,7 +394,7 @@ export function CommunityPanel({
       <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-b-lg">
         <div className="text-center">
           <p className="text-sm text-gray-600 mb-2">
-            Together, we're building a sustainable Thailand! 🇹🇭
+            Together, we&apos;re building a sustainable Thailand! 🇹🇭
           </p>
           <button className="bg-green-500 hover:bg-green-600 text-white text-sm font-handwritten px-4 py-2 rounded-lg transition-colors">
             Invite Friends to Join

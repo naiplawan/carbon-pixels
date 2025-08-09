@@ -1,142 +1,109 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
-import Link from 'next/link';
-import { AppError, ErrorBoundaryState } from '@/types/waste';
+import { AlertTriangle, RefreshCw, Home, MessageCircle } from 'lucide-react';
 
-interface ErrorBoundaryProps {
+interface Props {
   children: ReactNode;
   fallback?: ReactNode;
-  showDetails?: boolean;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+interface State {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  errorId: string | null;
+}
+
+class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
-    
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      errorId: null
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    // Update state to show error UI
+  static getDerivedStateFromError(error: Error): State {
     return {
       hasError: true,
-      error
+      error,
+      errorInfo: null,
+      errorId: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
-    // Log error details
-    this.logError(error, errorInfo);
-    
-    // Call custom error handler if provided
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
-    }
-
     this.setState({
       error,
-      errorInfo
+      errorInfo,
+      errorId: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     });
+
+    // Log error for debugging
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+
+    // Call custom error handler if provided
+    this.props.onError?.(error, errorInfo);
+
+    // Send to error reporting service in production
+    if (process.env.NODE_ENV === 'production') {
+      this.reportError(error, errorInfo);
+    }
   }
 
-  private logError = (error: Error, errorInfo: ErrorInfo) => {
-    const appError: AppError = {
-      code: 'COMPONENT_ERROR',
+  reportError = (error: Error, errorInfo: ErrorInfo) => {
+    // In a real app, send to error reporting service like Sentry
+    const errorData = {
       message: error.message,
-      userMessage: 'Something went wrong in the waste diary application',
-      context: {
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        timestamp: new Date().toISOString(),
-        userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown',
-        url: typeof window !== 'undefined' ? window.location.href : 'unknown'
-      },
-      timestamp: new Date()
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      errorId: this.state.errorId
     };
 
-    // In a real app, send this to error logging service
-    console.error('Logged App Error:', appError);
-    
-    // Store in localStorage for debugging
-    try {
-      const existingErrors = JSON.parse(localStorage.getItem('app_errors') || '[]');
-      existingErrors.push(appError);
-      // Keep only last 10 errors
-      if (existingErrors.length > 10) {
-        existingErrors.splice(0, existingErrors.length - 10);
-      }
-      localStorage.setItem('app_errors', JSON.stringify(existingErrors));
-    } catch (e) {
-      console.warn('Could not store error in localStorage:', e);
-    }
+    // Store locally for now
+    const existingErrors = JSON.parse(localStorage.getItem('app-errors') || '[]');
+    existingErrors.push(errorData);
+    localStorage.setItem('app-errors', JSON.stringify(existingErrors.slice(-10))); // Keep last 10 errors
   };
 
-  private handleRetry = () => {
+  handleRetry = () => {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      errorId: null
     });
   };
 
-  private handleReload = () => {
-    if (typeof window !== 'undefined') {
-      window.location.reload();
-    }
+  handleGoHome = () => {
+    window.location.href = '/diary';
   };
 
-  private getErrorType = (error: Error): string => {
-    if (error.message.includes('localStorage')) return 'STORAGE_ERROR';
-    if (error.message.includes('fetch') || error.message.includes('network')) return 'NETWORK_ERROR';
-    if (error.message.includes('JSON')) return 'DATA_ERROR';
-    if (error.message.includes('Cannot read properties')) return 'REFERENCE_ERROR';
-    return 'UNKNOWN_ERROR';
-  };
+  handleReportError = () => {
+    const { error, errorId } = this.state;
+    const subject = encodeURIComponent(`Thailand Waste Diary Error Report - ${errorId}`);
+    const body = encodeURIComponent(`
+Error ID: ${errorId}
+Error: ${error?.message}
+URL: ${window.location.href}
+Time: ${new Date().toISOString()}
 
-  private getErrorSuggestions = (error: Error): string[] => {
-    const errorType = this.getErrorType(error);
+Please describe what you were doing when this error occurred:
+[Your description here]
+
+Additional details:
+- Browser: ${navigator.userAgent}
+- Screen size: ${window.innerWidth}x${window.innerHeight}
+    `);
     
-    switch (errorType) {
-      case 'STORAGE_ERROR':
-        return [
-          'Your browser storage might be full',
-          'Try clearing your browser data',
-          'Enable local storage in privacy settings'
-        ];
-      case 'NETWORK_ERROR':
-        return [
-          'Check your internet connection',
-          'Try refreshing the page',
-          'The service might be temporarily unavailable'
-        ];
-      case 'DATA_ERROR':
-        return [
-          'Your saved data might be corrupted',
-          'Try clearing the app data and starting fresh',
-          'Contact support if this persists'
-        ];
-      case 'REFERENCE_ERROR':
-        return [
-          'A component couldn\'t load properly',
-          'Try refreshing the page',
-          'This might be a temporary issue'
-        ];
-      default:
-        return [
-          'Try refreshing the page',
-          'Clear your browser cache',
-          'Contact support if the problem persists'
-        ];
-    }
+    window.open(`mailto:support@example.com?subject=${subject}&body=${body}`);
   };
 
   render() {
@@ -146,126 +113,85 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return this.props.fallback;
       }
 
-      const { error } = this.state;
-      const errorType = error ? this.getErrorType(error) : 'UNKNOWN_ERROR';
-      const suggestions = error ? this.getErrorSuggestions(error) : [];
-
       return (
         <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
-          <div className="max-w-lg w-full bg-white rounded-lg shadow-lg border-2 border-red-200 p-6">
-            {/* Error icon and title */}
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
-              </div>
-              <h1 className="font-handwritten text-2xl text-red-700 mb-2">
-                Oops! Something went wrong
-              </h1>
-              <p className="text-gray-600 text-sm">
-                Your waste diary encountered an unexpected error
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-6 text-center">
+            {/* Error Icon */}
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-600" />
+            </div>
+
+            {/* Error Title */}
+            <h1 className="text-2xl font-handwritten text-red-800 mb-2">
+              โอ๊ะ! เกิดข้อผิดพลาด<br/>Oops! Something went wrong
+            </h1>
+
+            {/* Error Description */}
+            <div className="text-gray-600 mb-6 space-y-2">
+              <p className="text-sm">
+                เราไม่สามารถโหลดหน้านี้ได้ในขณะนี้<br/>
+                We couldn&apos;t load this page right now.
+              </p>
+              <p className="text-xs text-gray-500">
+                ข้อมูลของคุณยังปลอดภัย - ไม่มีข้อมูลสูญหาย<br/>
+                Your data is safe - nothing was lost.
               </p>
             </div>
 
-            {/* Error type badge */}
-            <div className="bg-red-100 border border-red-200 rounded-lg p-3 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-red-600 uppercase tracking-wide">
-                  Error Type: {errorType.replace('_', ' ')}
-                </span>
-                <Bug className="w-4 h-4 text-red-500" />
-              </div>
-              
-              {error && (
-                <div className="text-sm text-red-700 font-mono bg-red-50 rounded px-2 py-1 break-words">
-                  {error.message}
-                </div>
-              )}
+            {/* Error ID */}
+            <div className="bg-gray-50 rounded-lg p-3 mb-6">
+              <p className="text-xs text-gray-600 mb-1">Error ID สำหรับการแจ้งปัญหา:</p>
+              <code className="text-xs font-mono text-gray-800 break-all">
+                {this.state.errorId}
+              </code>
             </div>
 
-            {/* Suggestions */}
-            <div className="mb-6">
-              <h3 className="font-handwritten text-lg text-gray-700 mb-3">
-                What you can try:
-              </h3>
-              <ul className="space-y-2">
-                {suggestions.map((suggestion, index) => (
-                  <li key={index} className="flex items-start text-sm text-gray-600">
-                    <span className="text-blue-500 mr-2 mt-0.5">•</span>
-                    {suggestion}
-                  </li>
-                ))}
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <button
+                onClick={this.handleRetry}
+                className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                ลองใหม่ / Try Again
+              </button>
+
+              <button
+                onClick={this.handleGoHome}
+                className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                กลับหน้าหลัก / Go Home
+              </button>
+
+              <button
+                onClick={this.handleReportError}
+                className="w-full flex items-center justify-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+              >
+                <MessageCircle className="w-4 h-4" />
+                แจ้งปัญหา / Report Error
+              </button>
+            </div>
+
+            {/* Help Text */}
+            <div className="mt-6 text-xs text-gray-500 space-y-1">
+              <p>💡 เทคนิคการแก้ไข:</p>
+              <ul className="text-left list-disc list-inside space-y-0.5">
+                <li>รีเฟรชหน้าเว็บ (F5 หรือ Ctrl+R)</li>
+                <li>ลองใช้งานในโหมด Incognito</li>
+                <li>ตรวจสอบการเชื่อมต่ออินเตอร์เน็ต</li>
+                <li>ล้าง Cache ของเบราว์เซอร์</li>
               </ul>
             </div>
 
-            {/* Action buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <button
-                onClick={this.handleRetry}
-                className="flex items-center justify-center px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-handwritten rounded-lg transition-colors"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </button>
-              
-              <button
-                onClick={this.handleReload}
-                className="flex items-center justify-center px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-handwritten rounded-lg transition-colors"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Reload Page
-              </button>
-            </div>
-
-            {/* Navigation */}
-            <div className="text-center">
-              <Link 
-                href="/"
-                className="inline-flex items-center text-gray-500 hover:text-gray-700 text-sm"
-              >
-                <Home className="w-4 h-4 mr-1" />
-                Back to Home
-              </Link>
-            </div>
-
-            {/* Technical details (expandable) */}
-            {this.props.showDetails && error && (
-              <details className="mt-6 border-t border-gray-200 pt-4">
-                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-                  Technical Details (for developers)
-                </summary>
-                <div className="mt-2 bg-gray-50 rounded-lg p-3">
-                  <div className="text-xs font-mono text-gray-600 whitespace-pre-wrap break-words">
-                    <strong>Error:</strong> {error.message}
-                    {error.stack && (
-                      <>
-                        <br /><br />
-                        <strong>Stack Trace:</strong>
-                        <br />
-                        {error.stack}
-                      </>
-                    )}
-                    {this.state.errorInfo?.componentStack && (
-                      <>
-                        <br /><br />
-                        <strong>Component Stack:</strong>
-                        <br />
-                        {this.state.errorInfo.componentStack}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </details>
-            )}
-
-            {/* Support link */}
-            <div className="mt-4 text-center text-xs text-gray-400">
-              Need help? Contact{' '}
-              <a 
-                href="mailto:support@thailand-waste-diary.com" 
-                className="text-blue-500 hover:text-blue-700 underline"
-              >
-                support@thailand-waste-diary.com
-              </a>
+            {/* Thailand Context */}
+            <div className="mt-4 p-3 bg-green-50 rounded-lg">
+              <p className="text-xs text-green-800">
+                🇹🇭 ขณะนี้ยังคงสนับสนุนเป้าหมายคาร์บอนนิวทรัลของไทยใน 2050<br/>
+                <span className="text-green-600">
+                  Still supporting Thailand&apos;s 2050 carbon neutrality goal
+                </span>
+              </p>
             </div>
           </div>
         </div>
@@ -276,85 +202,66 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-// Hook for handling async errors in components
+export default ErrorBoundary;
+
+// Hook for using error boundary programmatically
 export function useErrorHandler() {
-  const handleError = (error: Error, context?: Record<string, any>) => {
-    const appError: AppError = {
-      code: 'ASYNC_ERROR',
-      message: error.message,
-      userMessage: 'An error occurred while processing your request',
-      context: {
-        ...context,
-        timestamp: new Date().toISOString(),
-        stack: error.stack
-      },
-      timestamp: new Date()
-    };
-
-    console.error('Async Error:', appError);
-    
-    // In a real app, send to error logging service
-    // You could also show a toast notification here
+  return (error: Error, errorInfo?: ErrorInfo) => {
+    // This would trigger the error boundary
+    throw error;
   };
-
-  return { handleError };
 }
 
-// Specific error boundaries for different parts of the app
-export function WasteDiaryErrorBoundary({ children }: { children: ReactNode }) {
-  const handleError = (error: Error, errorInfo: ErrorInfo) => {
-    // Custom logging for waste diary specific errors
-    console.error('Waste Diary Error:', error, errorInfo);
-  };
-
-  return (
-    <ErrorBoundary
-      onError={handleError}
-      fallback={
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 m-4 text-center">
-          <div className="text-4xl mb-4">📝</div>
-          <h2 className="font-handwritten text-xl text-yellow-700 mb-2">
-            Diary Temporarily Unavailable
-          </h2>
-          <p className="text-yellow-600 mb-4">
-            Your waste diary encountered an issue, but your data is safe!
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-handwritten"
-          >
-            Refresh Diary
-          </button>
-        </div>
-      }
-    >
-      {children}
+// Higher-order component for wrapping components with error boundary
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: ReactNode
+) {
+  const WrappedComponent = (props: P) => (
+    <ErrorBoundary fallback={fallback}>
+      <Component {...props} />
     </ErrorBoundary>
+  );
+  
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+  return WrappedComponent;
+}
+
+// Specific error components for common scenarios
+export function DataLoadError({ onRetry, message }: { onRetry: () => void; message?: string }) {
+  return (
+    <div className="text-center p-6 bg-amber-50 rounded-lg border border-amber-200">
+      <AlertTriangle className="w-8 h-8 text-amber-600 mx-auto mb-3" />
+      <h3 className="font-medium text-amber-800 mb-2">ไม่สามารถโหลดข้อมูลได้</h3>
+      <p className="text-sm text-amber-700 mb-4">
+        {message || 'เกิดปัญหาในการโหลดข้อมูล กรุณาลองใหม่อีกครั้ง'}
+      </p>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+      >
+        <RefreshCw className="w-4 h-4 inline mr-2" />
+        ลองใหม่
+      </button>
+    </div>
   );
 }
 
-export function ScannerErrorBoundary({ children }: { children: ReactNode }) {
+export function NetworkError({ onRetry }: { onRetry: () => void }) {
   return (
-    <ErrorBoundary
-      fallback={
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <div className="text-4xl mb-4">📷</div>
-          <h2 className="font-handwritten text-xl text-blue-700 mb-2">
-            Scanner Not Available
-          </h2>
-          <p className="text-blue-600 mb-4">
-            The AI scanner is having issues. You can still add items manually!
-          </p>
-          <Link 
-            href="/diary/manual"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-handwritten inline-block"
-          >
-            Use Manual Entry
-          </Link>
-        </div>
-      }
-    >
-      {children}
-    </ErrorBoundary>
+    <div className="text-center p-6 bg-red-50 rounded-lg border border-red-200">
+      <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-3" />
+      <h3 className="font-medium text-red-800 mb-2">ปัญหาการเชื่อมต่อ</h3>
+      <p className="text-sm text-red-700 mb-4">
+        ไม่สามารถเชื่อมต่ออินเตอร์เน็ตได้ กรุณาตรวจสอบการเชื่อมต่อ
+      </p>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+      >
+        <RefreshCw className="w-4 h-4 inline mr-2" />
+        ลองเชื่อมต่อใหม่
+      </button>
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import wasteData from '@/data/thailand-waste-categories.json'
+import { hapticFeedback, addTouchFeedback } from '@/components/TouchFeedback'
 
 interface GameificationPanelProps {
   totalCredits: number
@@ -55,11 +56,11 @@ export default function GameificationPanel({
 
   const getComparisonMessages = () => {
     const trees = getTreeEquivalent()
-    if (trees === 0) return "Keep going! You're building towards your first tree! 🌱"
+    if (trees === 0) return "Keep going! You&apos;re building towards your first tree! 🌱"
     if (trees === 1) return "Amazing! You've saved enough CO₂ equivalent to 1 tree! 🌳"
     if (trees < 5) return `Fantastic! You've saved CO₂ equal to ${trees} trees! 🌲`
     if (trees < 10) return `Incredible! You've saved a small forest worth (${trees} trees)! 🌲🌳🌲`
-    return `You're a forest hero! ${trees} trees worth of CO₂ saved! 🌲🌳🌲🌲`
+    return `You&apos;re a forest hero! ${trees} trees worth of CO₂ saved! 🌲🌳🌲🌲`
   }
 
   const getCO2Equivalent = () => {
@@ -100,31 +101,34 @@ export default function GameificationPanel({
       </div>
 
       {/* Fun Statistics */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl mb-1">🌳</div>
+      <section aria-labelledby="stats-heading">
+        <h3 id="stats-heading" className="sr-only">Environmental Impact Statistics</h3>
+        <div className="grid grid-cols-2 gap-4 mb-6" role="list">
+        <div className="text-center p-3 bg-green-50 rounded-lg" role="listitem" aria-label={`${getTreeEquivalent()} trees saved`}>
+          <div className="text-2xl mb-1" aria-hidden="true">🌳</div>
           <div className="font-handwritten text-green-600 text-lg">{getTreeEquivalent()}</div>
           <div className="text-xs text-green-700">Trees Saved</div>
         </div>
         
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl mb-1">🔥</div>
+        <div className="text-center p-3 bg-blue-50 rounded-lg" role="listitem" aria-label={`${getDailyStreak()} day streak`}>
+          <div className="text-2xl mb-1" aria-hidden="true">🔥</div>
           <div className="font-handwritten text-blue-600 text-lg">{getDailyStreak()}</div>
           <div className="text-xs text-blue-700">Day Streak</div>
         </div>
         
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl mb-1">💨</div>
+        <div className="text-center p-3 bg-purple-50 rounded-lg" role="listitem" aria-label={`${getCO2Equivalent()} kilograms of CO2 saved`}>
+          <div className="text-2xl mb-1" aria-hidden="true">💨</div>
           <div className="font-handwritten text-purple-600 text-lg">{getCO2Equivalent()}kg</div>
           <div className="text-xs text-purple-700">CO₂ Saved</div>
         </div>
         
-        <div className="text-center p-3 bg-orange-50 rounded-lg">
-          <div className="text-2xl mb-1">⭐</div>
+        <div className="text-center p-3 bg-orange-50 rounded-lg" role="listitem" aria-label={`${todayCredits} points earned today`}>
+          <div className="text-2xl mb-1" aria-hidden="true">⭐</div>
           <div className="font-handwritten text-orange-600 text-lg">{todayCredits}</div>
           <div className="text-xs text-orange-700">Today&apos;s Points</div>
         </div>
       </div>
+      </section>
 
       {/* Fun Comparison */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg mb-6">
@@ -136,22 +140,33 @@ export default function GameificationPanel({
         </div>
       </div>
 
-      {/* Daily Goals */}
-      <div className="mb-6">
-        <h3 className="font-sketch text-ink mb-3">Today&apos;s Challenges 🎯</h3>
-        <div className="space-y-2">
+      {/* Daily Goals - Mobile optimized */}
+      <div className="mb-8">
+        <h3 className="font-handwritten text-ink mb-4 text-xl text-center">Today&apos;s Challenges 🎯</h3>
+        <div className="space-y-3">
           {wasteData.gamification.dailyGoals.map((goal, index) => {
             const isCompleted = todayCredits >= goal.credits
             return (
-              <div key={goal.id} className={`flex items-center justify-between p-2 rounded-lg ${
-                isCompleted ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <div className="text-sm">{isCompleted ? '✅' : '⭕'}</div>
-                  <div className="text-sm font-sketch">{goal.name}</div>
+              <button
+                key={goal.id}
+                onClick={(e) => {
+                  hapticFeedback(isCompleted ? 'light' : 'medium');
+                  addTouchFeedback(e.currentTarget);
+                }}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md active:shadow-inner min-h-[64px] ${
+                  isCompleted 
+                    ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 border-2 border-green-300' 
+                    : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-2 border-gray-300 hover:from-green-25 hover:to-green-50'
+                }`}
+                style={{ touchAction: 'manipulation' }}
+                aria-label={`Challenge: ${goal.name}. ${isCompleted ? 'Completed' : 'Not completed'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">{isCompleted ? '✅' : '⭕'}</div>
+                  <div className="text-base font-sketch font-medium text-left">{goal.name}</div>
                 </div>
-                <div className="text-xs">+{goal.credits} CC</div>
-              </div>
+                <div className="text-sm font-bold bg-white/60 px-3 py-1 rounded-full">+{goal.credits} CC</div>
+              </button>
             )
           })}
         </div>

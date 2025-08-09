@@ -159,9 +159,27 @@ export function MobileWeightSelector({
       <div className="px-2">
         <div
           ref={sliderRef}
-          className="relative h-8 bg-gray-200 rounded-full cursor-pointer touch-none"
+          role="slider"
+          aria-valuenow={clampedValue}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-label={`Weight selector, current value ${clampedValue.toFixed(1)} kilograms`}
+          tabIndex={0}
+          className="relative h-12 bg-gray-200 rounded-full cursor-pointer touch-none"
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
+          onKeyDown={(e) => {
+            const step = 0.1;
+            if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              const newValue = Math.min(max, clampedValue + step);
+              onChange(newValue);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              const newValue = Math.max(min, clampedValue - step);
+              onChange(newValue);
+            }
+          }}
         >
           {/* Slider track */}
           <div
@@ -171,13 +189,13 @@ export function MobileWeightSelector({
           
           {/* Slider thumb */}
           <div
-            className={`absolute top-1/2 transform -translate-y-1/2 w-8 h-8 bg-white border-2 border-green-400 rounded-full shadow-lg transition-all duration-150 ${
-              isDragging ? 'scale-110 border-green-500' : 'hover:scale-105'
+            className={`absolute top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white border-3 border-green-400 rounded-full shadow-lg transition-all duration-150 ${
+              isDragging ? 'scale-110 border-green-500 shadow-xl' : 'hover:scale-105'
             }`}
-            style={{ left: `calc(${sliderPercent}% - 16px)` }}
+            style={{ left: `calc(${sliderPercent}% - 24px)` }}
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <div className="w-3 h-3 bg-green-500 rounded-full" />
             </div>
           </div>
 
@@ -234,7 +252,7 @@ export function MobileWeightSelector({
           Quick Selections:
         </div>
         <div className="grid grid-cols-5 gap-2">
-          {WASTE_CONSTANTS.DEFAULT_WEIGHT_SUGGESTIONS.map((weight) => (
+          {WASTE_CONSTANTS.DEFAULT_WEIGHT_OPTIONS.map((weight) => (
             <button
               key={weight}
               onClick={() => handleQuickWeight(weight)}

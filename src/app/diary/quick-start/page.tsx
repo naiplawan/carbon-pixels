@@ -87,8 +87,8 @@ export default function QuickStartPage() {
             Quick Demo: 30 Seconds to Impact! ⚡
           </h3>
           <p className="text-green-600 text-sm">
-            We'll walk you through tracking your first item. 
-            See how every choice makes a difference for Thailand's 2050 carbon goal!
+            We&apos;ll walk you through tracking your first item. 
+            See how every choice makes a difference for Thailand&apos;s 2050 carbon goal!
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function QuickStartPage() {
           onClick={() => setCurrentStep('category')}
           className="bg-green-500 hover:bg-green-600 text-white font-handwritten text-xl px-8 py-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
         >
-          Let's Start! 🚀
+          Let&apos;s Start! 🚀
         </button>
         
         <div className="text-sm text-gray-500 mt-4">
@@ -115,7 +115,7 @@ export default function QuickStartPage() {
             What did you throw away recently?
           </h2>
           <p className="text-pencil">
-            Pick something you actually discarded today - let's make this real!
+            Pick something you actually discarded today - let&apos;s make this real!
           </p>
         </div>
 
@@ -144,10 +144,10 @@ export default function QuickStartPage() {
               Great choice! {categoryData?.icon}
             </h4>
             <p className="text-blue-600 text-sm mb-2">
-              <strong>Examples:</strong> {categoryData?.examples.join(', ')}
+              <strong>Examples:</strong> {categoryData?.examples?.join(', ')}
             </p>
             <p className="text-blue-600 text-xs">
-              💡 <strong>Tip:</strong> {categoryData?.tips[0]}
+              💡 <strong>Tip:</strong> {categoryData?.tips?.[0]}
             </p>
           </div>
         )}
@@ -222,7 +222,7 @@ export default function QuickStartPage() {
                       {method === 'disposed' && 'Sent to landfill/trash'}
                       {method === 'recycled' && 'Proper recycling bin'}
                       {method === 'composted' && 'Organic composting'}
-                      {method === 'avoided' && 'Didn\'t use/buy it'}
+                      {method === 'avoided' && 'Didn&apos;t use/buy it'}
                       {method === 'reused' && 'Found another use'}
                     </div>
                   </div>
@@ -269,7 +269,7 @@ export default function QuickStartPage() {
             About how much did it weigh?
           </h2>
           <p className="text-pencil">
-            Don't worry about being exact - a good estimate is perfect!
+            Don&apos;t worry about being exact - a good estimate is perfect!
           </p>
         </div>
 
@@ -305,7 +305,7 @@ export default function QuickStartPage() {
 
           {/* Quick weight buttons */}
           <div className="grid grid-cols-5 gap-2 mt-4">
-            {WASTE_CONSTANTS.DEFAULT_WEIGHT_SUGGESTIONS.map((suggestedWeight) => (
+            {WASTE_CONSTANTS.DEFAULT_WEIGHT_OPTIONS.map((suggestedWeight) => (
               <button
                 key={suggestedWeight}
                 onClick={() => setWeight(suggestedWeight)}
@@ -374,7 +374,7 @@ export default function QuickStartPage() {
         <div className="text-6xl mb-4 animate-bounce">🎉</div>
         
         <h1 className="font-handwritten text-3xl text-green-600 mb-4">
-          Amazing! You're Making a Difference!
+          Amazing! You&apos;re Making a Difference!
         </h1>
 
         <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 space-y-4">
@@ -476,7 +476,7 @@ export default function QuickStartPage() {
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500">
           <div className="font-handwritten mb-2">🌱 Thailand Waste Diary</div>
-          <div>Supporting Thailand's 2050 carbon neutrality goal, one entry at a time</div>
+          <div>Supporting Thailand&apos;s 2050 carbon neutrality goal, one entry at a time</div>
         </div>
       </div>
     </div>

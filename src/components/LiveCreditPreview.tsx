@@ -36,7 +36,7 @@ export function LiveCreditPreview({
   const credits = category ? calculateCredits(category, disposal, weight) : 0;
   const formattedCredits = formatCredits(credits);
   const treeProgress = credits / WASTE_CONSTANTS.CREDITS_PER_TREE;
-  const co2Impact = Math.abs(credits) * WASTE_CONSTANTS.CO2_GRAMS_PER_CREDIT;
+  const co2Impact = Math.abs(credits) * WASTE_CONSTANTS.CARBON_CREDITS_PER_GRAM;
 
   // Animation trigger when credits change significantly
   useEffect(() => {
@@ -54,8 +54,8 @@ export function LiveCreditPreview({
       .filter(([method]) => method !== disposal)
       .map(([method, altCredits]) => ({
         method: method as DisposalMethod,
-        credits: altCredits * weight,
-        improvement: (altCredits * weight) - credits
+        credits: (altCredits || 0) * weight,
+        improvement: ((altCredits || 0) * weight) - credits
       }))
       .filter(alt => alt.improvement > 0)
       .sort((a, b) => b.improvement - a.improvement)
@@ -285,7 +285,7 @@ export function CelebrationOverlay({
             +{credits} Carbon Credits!
           </div>
           <div className="text-sm text-green-600">
-            You're helping Thailand reach carbon neutrality! 🇹🇭
+            You&apos;re helping Thailand reach carbon neutrality! 🇹🇭
           </div>
         </div>
       </div>

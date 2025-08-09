@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download, X, RefreshCw, Wifi } from 'lucide-react';
+import { Download, X, RefreshCw, Wifi, Battery } from 'lucide-react';
+import { useNetworkConnection, useBatteryAwareOptimizations } from '@/hooks/useNetworkConnection';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -14,6 +15,11 @@ export function PWAManager() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [swRegistration, setSWRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [cacheSize, setCacheSize] = useState(0);
+  const [swStatus, setSwStatus] = useState<'idle' | 'updating' | 'updated'>('idle');
+  
+  const { isOnline, connectionSpeed, isSlowConnection, networkStrength } = useNetworkConnection();
+  const { isLowBattery, getBatteryOptimizations } = useBatteryAwareOptimizations();
 
   useEffect(() => {
     // Register service worker
@@ -313,9 +319,9 @@ export function OfflineIndicator() {
       <div className="p-3 flex items-center">
         <Wifi className="w-5 h-5 mr-3" />
         <div>
-          <div className="font-handwritten text-sm">You're Offline</div>
+          <div className="font-handwritten text-sm">You&apos;re Offline</div>
           <div className="text-xs text-amber-100">
-            Your entries will sync when you're back online
+            Your entries will sync when you&apos;re back online
           </div>
         </div>
       </div>

@@ -331,7 +331,7 @@ export default function NotificationManager() {
           <div className="flex items-center">
             <span className="text-green-500 mr-2">✅</span>
             <span className="text-sm text-green-800">
-              Notifications are enabled! We'll help you stay on track with your environmental goals.
+              Notifications are enabled! We&apos;ll help you stay on track with your environmental goals.
             </span>
           </div>
         </div>

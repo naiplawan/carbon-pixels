@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Camera, X, RotateCcw, Flashlight, FlashlightOff, Download, Zap, Target, Crosshair } from 'lucide-react'
+import { Camera, X, RotateCcw, Flashlight, FlashlightOff, Download, Zap, Target, Crosshair, AlertCircle } from 'lucide-react'
 import wasteCategories from '@/data/thailand-waste-categories.json'
 
 interface CameraScanResult {
@@ -82,8 +82,8 @@ export default function MobileCameraScanner({
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const animationRef = useRef<number>()
-  const scanTimeoutRef = useRef<NodeJS.Timeout>()
+  const animationRef = useRef<number | null>(null)
+  const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Camera permissions and setup
   useEffect(() => {
@@ -227,9 +227,9 @@ export default function MobileCameraScanner({
       const track = streamRef.current.getVideoTracks()[0]
       const capabilities = track.getCapabilities()
       
-      if (capabilities.torch) {
+      if ((capabilities as any).torch) {
         await track.applyConstraints({
-          advanced: [{ torch: !isFlashOn }]
+          advanced: [{ torch: !isFlashOn } as any]
         })
         setIsFlashOn(!isFlashOn)
       }
@@ -424,7 +424,7 @@ export default function MobileCameraScanner({
                 </button>
 
                 <div className="flex gap-2">
-                  {streamRef.current?.getVideoTracks()[0]?.getCapabilities()?.torch && (
+                  {(streamRef.current?.getVideoTracks()[0]?.getCapabilities() as any)?.torch && (
                     <button
                       onClick={toggleFlash}
                       className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${

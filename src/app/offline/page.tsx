@@ -139,7 +139,7 @@ export default function OfflinePage() {
           </ul>
           
           <div className="mt-3 p-2 bg-green-100 rounded text-xs text-green-600">
-            💡 <strong>Auto-sync:</strong> Your entries will sync automatically when you're back online!
+            💡 <strong>Auto-sync:</strong> Your entries will sync automatically when you&apos;re back online!
           </div>
         </div>
 
