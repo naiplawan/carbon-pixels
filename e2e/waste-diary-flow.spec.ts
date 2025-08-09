@@ -141,7 +141,7 @@ test.describe('Thailand Waste Diary E2E Tests', () => {
     
     // Check skip link for accessibility
     const skipLink = page.getByText('Skip to main content');
-    await expect(skipLink).toBeInTheDocument();
+    await expect(skipLink).toBeVisible();
   });
 
   test('should handle PWA features', async ({ page }) => {

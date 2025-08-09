@@ -29,7 +29,7 @@ const mockContext = {
   })),
 };
 
-global.HTMLCanvasElement.prototype.getContext = jest.fn(() => mockContext);
+global.HTMLCanvasElement.prototype.getContext = jest.fn(() => mockContext) as any;
 Object.defineProperty(document, 'createElement', {
   value: jest.fn((tagName) => {
     if (tagName === 'canvas') {
@@ -58,7 +58,7 @@ const mockWasteEntries = [
     disposal: 'recycled',
     weight: 0.5,
     carbonCredits: 15,
-    timestamp: new Date('2024-01-01'),
+    timestamp: '2024-01-01',
   },
   {
     id: '2',
@@ -67,7 +67,7 @@ const mockWasteEntries = [
     disposal: 'composted',
     weight: 1.0,
     carbonCredits: 25,
-    timestamp: new Date('2024-01-02'),
+    timestamp: '2024-01-02',
   },
 ];
 

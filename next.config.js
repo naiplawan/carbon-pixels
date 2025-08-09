@@ -14,6 +14,18 @@ const nextConfig = {
   // Bundle analysis and optimization
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    optimizeCss: true,
+    serverMinification: true,
+    webVitalsAttribution: ['CLS', 'FCP', 'FID', 'INP', 'LCP', 'TTFB'],
+  },
+  // Turbopack configuration (moved from experimental.turbo)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
   },
   // Image optimization
   images: {
@@ -33,6 +45,26 @@ const nextConfig = {
           {
             key: 'X-Frame-Options',
             value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self)'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com data:; img-src 'self' data: blob:; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self'"
           }
         ]
       },
@@ -56,30 +88,78 @@ const nextConfig = {
       }
     ]
   },
-  // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
+  // Webpack optimizations for mobile performance
+  webpack: (config, { dev, isServer, webpack }) => {
     // Production optimizations
     if (!dev && !isServer) {
       // Tree shaking for JSON files
       config.optimization.usedExports = true;
       
-      // Bundle splitting
+      // Advanced bundle splitting for mobile
       config.optimization.splitChunks = {
         chunks: 'all',
+        minSize: 20000,
+        maxSize: 244000,
         cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
+          // Framework code (React, Next.js)
+          framework: {
             chunks: 'all',
+            name: 'framework',
+            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+            priority: 40,
+            enforce: true,
           },
-          common: {
-            name: 'commons',
+          // Third-party libraries
+          lib: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'lib',
+            priority: 30,
             chunks: 'all',
+            maxSize: 170000,
+          },
+          // App-specific utilities and components
+          commons: {
+            name: 'commons',
             minChunks: 2,
+            priority: 20,
+            chunks: 'all',
+            enforce: true,
+          },
+          // Waste data and heavy components
+          wasteData: {
+            test: /[\\/](thailand-waste-categories\.json|WasteScanner|GameificationPanel)/,
+            name: 'waste-features',
+            chunks: 'all',
+            priority: 10,
           },
         },
       };
+
+      // Mobile-specific optimizations
+      config.optimization.moduleIds = 'deterministic';
+      config.optimization.chunkIds = 'deterministic';
+      
+      // Reduce bundle size for mobile networks
+      if (config.mode === 'production') {
+        config.optimization.minimize = true;
+      }
     }
+
+    // Mobile performance plugins
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        '__DEV__': dev,
+        '__MOBILE_BUILD__': true,
+      })
+    );
+
+    // Optimize for mobile devices
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
 
     return config;
   },

@@ -20,7 +20,7 @@ const mockWasteEntries: WasteEntry[] = [
     disposal: 'recycled',
     weight: 0.5,
     carbonCredits: 15,
-    timestamp: new Date('2024-01-01T10:00:00Z'),
+    timestamp: '2024-01-01T10:00:00Z',
   },
   {
     id: '2',
@@ -29,7 +29,7 @@ const mockWasteEntries: WasteEntry[] = [
     disposal: 'composted',
     weight: 1.0,
     carbonCredits: 25,
-    timestamp: new Date('2024-01-02T14:00:00Z'),
+    timestamp: '2024-01-02T14:00:00Z',
   },
   {
     id: '3',
@@ -38,7 +38,7 @@ const mockWasteEntries: WasteEntry[] = [
     disposal: 'disposed',
     weight: 0.1,
     carbonCredits: -67,
-    timestamp: new Date('2024-01-03T16:00:00Z'),
+    timestamp: '2024-01-03T16:00:00Z',
   },
   {
     id: '4',
@@ -47,7 +47,7 @@ const mockWasteEntries: WasteEntry[] = [
     disposal: 'recycled',
     weight: 2.0,
     carbonCredits: 30,
-    timestamp: new Date('2024-01-04T09:00:00Z'),
+    timestamp: '2024-01-04T09:00:00Z',
   },
 ];
 

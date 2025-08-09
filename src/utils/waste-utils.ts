@@ -24,7 +24,7 @@ export function getCategoryData(
     return undefined;
   }
 
-  return categories.wasteCategories.find(category => category.id === categoryId);
+  return categories.wasteCategories.find((category: WasteCategory) => category.id === categoryId);
 }
 
 /**
@@ -132,7 +132,7 @@ export function createWasteEntry(
       Math.min(WASTE_CONSTANTS.MAX_WEIGHT_KG, entry.weight)
     ),
     carbonCredits: entry.carbonCredits,
-    timestamp: entry.timestamp || new Date(),
+    timestamp: entry.timestamp || new Date().toISOString(),
     notes: entry.notes ? sanitizeInput(entry.notes) : undefined,
     image: entry.image // Image URLs should be validated separately
   };
@@ -355,7 +355,7 @@ export function getSmartSuggestions(entries: WasteEntry[]): Array<{
       label: recentEntry?.categoryName || 'Recent Item',
       icon: '🔄',
       categoryId,
-      disposal: recentEntry?.disposal || 'disposed'
+      disposal: (recentEntry?.disposal || 'disposed') as DisposalMethod
     };
   });
 }
