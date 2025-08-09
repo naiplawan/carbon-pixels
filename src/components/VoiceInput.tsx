@@ -195,7 +195,7 @@ export function VoiceInput({
     let interimTranscript = '';
     let maxConfidence = 0;
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
+    for (let i = event.resultIndex; i < (event.results as any).length; i++) {
       const result = event.results[i];
       const transcript = result[0].transcript;
       const confidence = result[0].confidence;
