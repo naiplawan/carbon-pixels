@@ -1,21 +1,21 @@
-// Type definitions for waste tracking system
+/**
+ * TypeScript type definitions for waste tracking system
+ */
+
+export type DisposalMethod = 'disposed' | 'recycled' | 'composted' | 'avoided' | 'donated' | 'reused'
 
 export interface WasteCategory {
   id: string;
   name: string;
   nameLocal?: string;
   icon: string;
-  carbonCredits: {
-    disposed?: number;
-    recycled?: number;
-    composted?: number;
-    avoided?: number;
-    donated?: number;
-    [key: string]: number | undefined;
-  };
+  carbonCredits: Partial<Record<DisposalMethod, number>>;
   examples?: string[];
   tips?: string[];
-  disposalMethods?: string[];
+  disposalMethods?: DisposalMethod[];
+  defaultDisposal?: DisposalMethod;
+  impactLevel?: 'low' | 'medium' | 'high';
+  recyclable?: boolean;
 }
 
 export interface GamificationLevel {
@@ -84,7 +84,7 @@ export const WASTE_CONSTANTS = {
 } as const;
 
 // Additional types referenced in waste-utils.ts
-export type DisposalMethod = 'disposed' | 'recycled' | 'composted' | 'avoided' | 'donated' | 'reused';
+// Note: DisposalMethod is already defined above
 
 export interface ValidationResult {
   isValid: boolean;

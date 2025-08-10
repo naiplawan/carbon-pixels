@@ -26,6 +26,8 @@ export const viewport = {
   initialScale: 1,
 }
 
+import { MobileNavigationLayout, NavigationStyles } from '@/components/navigation'
+
 export default function RootLayout({
   children,
 }: {
@@ -60,14 +62,27 @@ export default function RootLayout({
         />
         {/* Preload critical JSON data */}
         <link rel="modulepreload" href="/src/data/thailand-waste-categories.json" />
+        
+        {/* Mobile viewport optimizations */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="format-detection" content="telephone=no" />
       </head>
-      <body>
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-green-leaf text-white px-4 py-2 rounded-lg z-50">
+      <body className="overflow-x-hidden">
+        {/* Inject navigation styles */}
+        <NavigationStyles />
+        
+        {/* Skip to content link for accessibility */}
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-green-500 text-white px-4 py-2 rounded-lg z-[60] shadow-lg">
           Skip to main content
         </a>
-        <main id="main-content" role="main">
-          {children}
-        </main>
+        
+        {/* Main navigation layout wrapper */}
+        <MobileNavigationLayout>
+          <main id="main-content" role="main" className="focus:outline-none">
+            {children}
+          </main>
+        </MobileNavigationLayout>
       </body>
     </html>
   )

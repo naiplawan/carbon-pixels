@@ -1,510 +1,453 @@
-// Service Worker for Thailand Waste Diary PWA
-// Provides offline functionality, caching, and background sync
+// Thailand Waste Diary - Mobile-Optimized Service Worker
+// Aggressive caching strategy for Thai mobile network conditions
 
-const CACHE_NAME = 'thailand-waste-diary-v1';
-const STATIC_CACHE_NAME = 'static-v1';
-const DYNAMIC_CACHE_NAME = 'dynamic-v1';
+const CACHE_NAME = 'thailand-waste-diary-v1.2.0'
+const STATIC_CACHE = 'static-v1.2.0'
+const DATA_CACHE = 'data-v1.2.0'
+const IMAGE_CACHE = 'images-v1.2.0'
 
-// Assets to cache immediately
-const STATIC_ASSETS = [
-  '/',
-  '/diary',
-  '/diary/quick-start',
-  '/diary/manual',
-  '/diary/history',
-  '/calculator',
-  '/offline',
-  '/manifest.json',
-  // Core styles and fonts
-  '/_next/static/css/',
-  // Core JavaScript bundles (Next.js will generate these)
-  '/_next/static/chunks/',
-  // Thailand waste categories data
-  '/data/thailand-waste-categories.json',
-  // Essential icons
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
-];
+// Cache strategies based on Thai mobile network conditions
+const CACHE_STRATEGIES = {
+  // Critical resources - cache aggressively for offline support
+  CRITICAL: [
+    '/',
+    '/diary',
+    '/offline',
+    '/manifest.json'
+  ],
+  
+  // Static assets - long-term cache with network fallback
+  STATIC: [
+    '/favicon.ico',
+    '/_next/static/css',
+    '/_next/static/js'
+  ],
+  
+  // API endpoints - stale-while-revalidate for fresh data
+  API: [
+    '/api/calculate',
+    '/api/questions'
+  ],
+  
+  // Data files - cache with background sync
+  DATA: [
+    '/data/thailand-waste-categories.json',
+    '/data/thailand-questions.json'
+  ],
+  
+  // Images - aggressive compression and caching
+  IMAGES: [
+    '.jpg', '.jpeg', '.png', '.webp', '.avif', '.svg'
+  ]
+}
 
-// Dynamic assets to cache on request
-const DYNAMIC_CACHE_PATTERNS = [
-  /^https:\/\/fonts\.googleapis\.com/,
-  /^https:\/\/fonts\.gstatic\.com/,
-  /\/_next\/static\//,
-  /\/api\//
-];
-
-// Assets that should always be fetched from network
-const NETWORK_FIRST_PATTERNS = [
-  /\/api\/live-data/,
-  /\/api\/sync/,
-  /\/api\/notifications/
-];
-
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+// Install event - pre-cache critical resources
+self.addEventListener('install', event => {
+  console.log('[SW] Installing Thailand Waste Diary Service Worker v1.2.0')
   
   event.waitUntil(
     Promise.all([
-      // Cache static assets
-      caches.open(STATIC_CACHE_NAME).then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS.filter(asset => 
-          !asset.includes('_next') // Skip Next.js generated assets for now
-        ));
+      // Cache critical pages and assets
+      caches.open(CACHE_NAME).then(cache => {
+        return cache.addAll(CACHE_STRATEGIES.CRITICAL)
       }),
-      // Skip waiting to activate immediately
-      self.skipWaiting()
+      
+      // Pre-cache waste categories data for offline use
+      caches.open(DATA_CACHE).then(cache => {
+        return fetch('/data/thailand-waste-categories.json')
+          .then(response => {
+            if (response.ok) {
+              return cache.put('/data/thailand-waste-categories.json', response)
+            }
+          })
+          .catch(() => console.log('[SW] Failed to pre-cache waste data'))
+      })
     ])
-  );
-});
+  )
+  
+  // Skip waiting to activate immediately
+  self.skipWaiting()
+})
 
 // Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+self.addEventListener('activate', event => {
+  console.log('[SW] Activating new service worker')
   
   event.waitUntil(
     Promise.all([
       // Clean up old caches
-      caches.keys().then((cacheNames) => {
+      caches.keys().then(cacheNames => {
         return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE_NAME && 
-                cacheName !== DYNAMIC_CACHE_NAME &&
-                cacheName !== CACHE_NAME) {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
+          cacheNames.map(cacheName => {
+            if (cacheName !== CACHE_NAME && 
+                cacheName !== STATIC_CACHE && 
+                cacheName !== DATA_CACHE && 
+                cacheName !== IMAGE_CACHE) {
+              console.log('[SW] Deleting old cache:', cacheName)
+              return caches.delete(cacheName)
             }
           })
-        );
+        )
       }),
-      // Take control of all clients
+      
+      // Claim all clients immediately
       self.clients.claim()
     ])
-  );
-});
+  )
+})
 
-// Fetch event - serve cached content when offline
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+// Fetch event - implement caching strategies
+self.addEventListener('fetch', event => {
+  const { request } = event
+  const url = new URL(request.url)
+  
+  // Skip non-HTTP requests
+  if (!request.url.startsWith('http')) return
+  
+  // Skip POST requests for cache
+  if (request.method !== 'GET') return
+  
+  event.respondWith(handleRequest(request, url))
+})
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
-
-  // Skip cross-origin requests that aren't Google Fonts
-  if (url.origin !== location.origin && 
-      !DYNAMIC_CACHE_PATTERNS.some(pattern => pattern.test(request.url))) {
-    return;
-  }
-
-  // Handle different types of requests with different strategies
-  if (NETWORK_FIRST_PATTERNS.some(pattern => pattern.test(request.url))) {
-    // Network first for live data
-    event.respondWith(networkFirstStrategy(request));
-  } else if (url.pathname.startsWith('/api/')) {
-    // Cache first for API calls (with background sync)
-    event.respondWith(cacheFirstWithSync(request));
-  } else if (DYNAMIC_CACHE_PATTERNS.some(pattern => pattern.test(request.url))) {
-    // Stale while revalidate for dynamic assets
-    event.respondWith(staleWhileRevalidateStrategy(request));
-  } else {
-    // Cache first for static assets
-    event.respondWith(cacheFirstStrategy(request));
-  }
-});
-
-// Network first strategy (for live data)
-async function networkFirstStrategy(request) {
+// Main request handler with mobile-optimized strategies
+async function handleRequest(request, url) {
   try {
-    const networkResponse = await fetch(request);
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+    // 1. Critical pages - cache-first with network fallback
+    if (CACHE_STRATEGIES.CRITICAL.some(path => url.pathname === path || url.pathname.startsWith(path))) {
+      return await cacheFirstStrategy(request, CACHE_NAME)
     }
     
-    return networkResponse;
+    // 2. Static assets - cache-first with long expiration
+    if (isStaticAsset(url)) {
+      return await cacheFirstStrategy(request, STATIC_CACHE, { maxAge: 31536000 }) // 1 year
+    }
+    
+    // 3. API endpoints - network-first with cache fallback
+    if (url.pathname.startsWith('/api/')) {
+      return await networkFirstStrategy(request, DATA_CACHE, { timeout: 3000 })
+    }
+    
+    // 4. Data files - stale-while-revalidate for offline support
+    if (isDataFile(url)) {
+      return await staleWhileRevalidateStrategy(request, DATA_CACHE)
+    }
+    
+    // 5. Images - cache-first with compression
+    if (isImageRequest(url)) {
+      return await imageStrategy(request)
+    }
+    
+    // 6. Everything else - network-first
+    return await networkFirstStrategy(request, CACHE_NAME)
+    
   } catch (error) {
-    console.log('[SW] Network failed, trying cache:', request.url);
+    console.error('[SW] Fetch error:', error)
     
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline page for navigation requests
+    // Fallback to offline page for navigation requests
     if (request.mode === 'navigate') {
-      return caches.match('/offline');
+      return await caches.match('/offline') || new Response('Offline - Thailand Waste Diary unavailable')
     }
     
-    throw error;
+    return new Response('Network Error', { status: 408 })
   }
 }
 
-// Cache first strategy (for static assets)
-async function cacheFirstStrategy(request) {
-  const cachedResponse = await caches.match(request);
+// Cache-first strategy - optimized for mobile offline usage
+async function cacheFirstStrategy(request, cacheName, options = {}) {
+  const cache = await caches.open(cacheName)
+  const cachedResponse = await cache.match(request)
   
   if (cachedResponse) {
-    return cachedResponse;
-  }
-  
-  try {
-    const networkResponse = await fetch(request);
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[SW] Failed to fetch:', request.url);
-    
-    // Return offline page for navigation requests
-    if (request.mode === 'navigate') {
-      return caches.match('/offline');
-    }
-    
-    throw error;
-  }
-}
-
-// Stale while revalidate strategy (for fonts, etc.)
-async function staleWhileRevalidateStrategy(request) {
-  const cache = await caches.open(DYNAMIC_CACHE_NAME);
-  const cachedResponse = await cache.match(request);
-  
-  // Fetch from network in background
-  const networkResponsePromise = fetch(request).then((networkResponse) => {
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
-    }
-    return networkResponse;
-  }).catch(() => {
-    console.log('[SW] Background fetch failed:', request.url);
-  });
-  
-  // Return cached response immediately, or wait for network
-  return cachedResponse || networkResponsePromise;
-}
-
-// Cache first with background sync (for API calls)
-async function cacheFirstWithSync(request) {
-  const cachedResponse = await caches.match(request);
-  
-  if (cachedResponse) {
-    // Background fetch to update cache
-    fetch(request).then(async (networkResponse) => {
-      if (networkResponse.ok) {
-        const cache = await caches.open(DYNAMIC_CACHE_NAME);
-        cache.put(request, networkResponse.clone());
+    // Check if cache is expired (for data freshness)
+    if (options.maxAge) {
+      const cachedDate = cachedResponse.headers.get('sw-cached-date')
+      if (cachedDate && Date.now() - parseInt(cachedDate) > options.maxAge * 1000) {
+        // Cache expired, try network
+        try {
+          const networkResponse = await fetchWithTimeout(request, 2000)
+          await updateCache(cache, request, networkResponse.clone())
+          return networkResponse
+        } catch {
+          // Network failed, return stale cache
+          return cachedResponse
+        }
       }
-    }).catch(() => {
-      console.log('[SW] Background sync failed for:', request.url);
-    });
+    }
     
-    return cachedResponse;
+    return cachedResponse
+  }
+  
+  // Not in cache, fetch from network
+  const networkResponse = await fetchWithTimeout(request, 5000)
+  await updateCache(cache, request, networkResponse.clone())
+  return networkResponse
+}
+
+// Network-first strategy - for dynamic content
+async function networkFirstStrategy(request, cacheName, options = {}) {
+  const cache = await caches.open(cacheName)
+  const timeout = options.timeout || 3000
+  
+  try {
+    const networkResponse = await fetchWithTimeout(request, timeout)
+    await updateCache(cache, request, networkResponse.clone())
+    return networkResponse
+  } catch (error) {
+    console.log('[SW] Network failed, trying cache for:', request.url)
+    
+    const cachedResponse = await cache.match(request)
+    if (cachedResponse) {
+      return cachedResponse
+    }
+    
+    throw error
+  }
+}
+
+// Stale-while-revalidate - for semi-dynamic content
+async function staleWhileRevalidateStrategy(request, cacheName) {
+  const cache = await caches.open(cacheName)
+  const cachedResponse = await cache.match(request)
+  
+  // Always try to fetch in background for next time
+  const fetchPromise = fetchWithTimeout(request, 5000)
+    .then(networkResponse => {
+      updateCache(cache, request, networkResponse.clone())
+      return networkResponse
+    })
+    .catch(() => {}) // Ignore background fetch errors
+  
+  if (cachedResponse) {
+    // Return cached version immediately, update in background
+    fetchPromise
+    return cachedResponse
+  }
+  
+  // No cache, wait for network
+  return await fetchPromise
+}
+
+// Image strategy - optimized for mobile data usage
+async function imageStrategy(request) {
+  const cache = await caches.open(IMAGE_CACHE)
+  const cachedResponse = await cache.match(request)
+  
+  if (cachedResponse) {
+    return cachedResponse
   }
   
   try {
-    const networkResponse = await fetch(request);
+    const response = await fetchWithTimeout(request, 8000) // Longer timeout for images
     
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+    // Only cache successful responses
+    if (response.ok) {
+      await updateCache(cache, request, response.clone())
     }
     
-    return networkResponse;
-  } catch (error) {
-    console.log('[SW] Cache first failed:', request.url);
-    
-    // Return meaningful offline response for API calls
-    if (request.url.includes('/api/waste-entries')) {
-      return new Response(JSON.stringify([]), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    throw error;
+    return response
+  } catch {
+    // Return placeholder image for failed loads
+    return new Response(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f3f4f6"/><text x="100" y="100" text-anchor="middle" fill="#9ca3af" font-family="system-ui">📷</text></svg>',
+      { 
+        headers: { 
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'max-age=86400'
+        } 
+      }
+    )
   }
+}
+
+// Helper functions
+async function fetchWithTimeout(request, timeout) {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  
+  try {
+    const response = await fetch(request, { signal: controller.signal })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    throw error
+  }
+}
+
+async function updateCache(cache, request, response) {
+  // Add timestamp for cache expiration
+  const responseToCache = new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: {
+      ...response.headers,
+      'sw-cached-date': Date.now().toString()
+    }
+  })
+  
+  return cache.put(request, responseToCache)
+}
+
+function isStaticAsset(url) {
+  return url.pathname.startsWith('/_next/static/') ||
+         url.pathname.startsWith('/static/') ||
+         /\.(css|js|woff|woff2|ttf|eot)$/.test(url.pathname)
+}
+
+function isDataFile(url) {
+  return url.pathname.startsWith('/data/') ||
+         url.pathname.endsWith('.json')
+}
+
+function isImageRequest(url) {
+  return /\.(jpg|jpeg|png|gif|webp|avif|svg|ico)$/i.test(url.pathname) ||
+         url.pathname.includes('images/') ||
+         url.searchParams.has('w') || // Next.js image optimization
+         url.searchParams.has('q')
 }
 
 // Background sync for offline actions
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync triggered:', event.tag);
+self.addEventListener('sync', event => {
+  console.log('[SW] Background sync:', event.tag)
   
   if (event.tag === 'waste-entry-sync') {
-    event.waitUntil(syncWasteEntries());
+    event.waitUntil(syncWasteEntries())
   }
-  
-  if (event.tag === 'periodic-cleanup') {
-    event.waitUntil(cleanupOldCache());
-  }
-});
+})
 
-// Sync waste entries when back online
 async function syncWasteEntries() {
   try {
-    console.log('[SW] Syncing offline waste entries...');
+    // Get pending waste entries from IndexedDB
+    const pendingEntries = await getPendingWasteEntries()
     
-    // Get offline entries from IndexedDB or localStorage
-    const clients = await self.clients.matchAll();
-    
-    clients.forEach(client => {
-      client.postMessage({
-        type: 'SYNC_OFFLINE_ENTRIES',
-        data: { timestamp: Date.now() }
-      });
-    });
-    
+    for (const entry of pendingEntries) {
+      try {
+        await fetch('/api/waste-entries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        })
+        
+        // Remove from pending queue
+        await removePendingWasteEntry(entry.id)
+      } catch {
+        // Keep in queue for next sync
+        console.log('[SW] Failed to sync entry:', entry.id)
+      }
+    }
   } catch (error) {
-    console.error('[SW] Failed to sync waste entries:', error);
+    console.error('[SW] Background sync failed:', error)
   }
 }
 
-// Clean up old cache entries
-async function cleanupOldCache() {
-  try {
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
-    const requests = await cache.keys();
-    
-    // Remove entries older than 7 days
-    const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-    
-    const deletePromises = requests
-      .filter(request => {
-        const cacheTime = parseInt(request.headers.get('sw-cache-time') || '0');
-        return cacheTime < oneWeekAgo;
-      })
-      .map(request => cache.delete(request));
-    
-    await Promise.all(deletePromises);
-    console.log('[SW] Cleaned up old cache entries');
-    
-  } catch (error) {
-    console.error('[SW] Cache cleanup failed:', error);
-  }
+// Placeholder functions for IndexedDB operations
+async function getPendingWasteEntries() {
+  // Would implement IndexedDB reading
+  return []
 }
 
-// Push notification handling
-self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received');
+async function removePendingWasteEntry(id) {
+  // Would implement IndexedDB deletion
+}
+
+// Push notifications for daily reminders
+self.addEventListener('push', event => {
+  if (!event.data) return
   
-  const defaultOptions = {
-    body: 'Time to track your daily waste! 🌱',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    tag: 'daily-reminder',
-    requireInteraction: false,
-    vibrate: [200, 100, 200],
+  const data = event.data.json()
+  const options = {
+    body: data.body || 'Time to track your waste! 🌱',
+    icon: '/icon-192x192.png',
+    badge: '/icon-72x72.png',
+    data: data.url || '/diary',
     actions: [
       {
-        action: 'track-now',
-        title: 'Track Now',
-        icon: '/icons/action-track.png'
+        action: 'open-diary',
+        title: 'Open Diary'
       },
       {
-        action: 'remind-later',
-        title: 'Remind Later',
-        icon: '/icons/action-later.png'
+        action: 'scan-waste',
+        title: 'Scan Waste'
       }
-    ],
-    data: {
-      url: '/diary/quick-start',
-      timestamp: Date.now()
-    }
-  };
-  
-  let options = defaultOptions;
-  
-  if (event.data) {
-    try {
-      const payload = event.data.json();
-      options = {
-        ...defaultOptions,
-        ...payload,
-        data: { ...defaultOptions.data, ...payload.data }
-      };
-    } catch (error) {
-      console.log('[SW] Failed to parse push payload:', error);
-    }
+    ]
   }
   
   event.waitUntil(
-    self.registration.showNotification('Thailand Waste Diary', options)
-  );
-});
+    self.registration.showNotification(
+      data.title || 'Thailand Waste Diary',
+      options
+    )
+  )
+})
 
-// Enhanced notification scheduling and management
-self.addEventListener('message', (event) => {
-  console.log('[SW] Message received:', event.data);
+// Handle notification clicks
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
   
-  const { type, data } = event.data || {};
+  let targetUrl = '/diary'
   
-  if (type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  if (event.action === 'scan-waste') {
+    targetUrl = '/diary?action=scan'
+  } else if (event.notification.data) {
+    targetUrl = event.notification.data
   }
   
-  if (type === 'CACHE_WASTE_ENTRY') {
-    cacheWasteEntry(data);
-  }
-  
-  if (type === 'REQUEST_SYNC') {
-    self.registration.sync.register('waste-entry-sync');
-  }
-  
-  // New notification management messages
-  if (type === 'SCHEDULE_NOTIFICATION') {
-    scheduleLocalNotification(data);
-  }
-  
-  if (type === 'CANCEL_NOTIFICATION') {
-    cancelScheduledNotification(data.tag);
-  }
-  
-  if (type === 'SHOW_ACHIEVEMENT') {
-    showAchievementNotification(data);
-  }
-});
-
-// Schedule local notification with delay
-async function scheduleLocalNotification(notificationData) {
-  const { delay, ...options } = notificationData;
-  
-  setTimeout(async () => {
-    try {
-      await self.registration.showNotification(options.title || 'Waste Diary', {
-        body: options.body,
-        icon: options.icon || '/icons/icon-192x192.png',
-        badge: options.badge || '/icons/badge-72x72.png',
-        tag: options.tag,
-        requireInteraction: options.requireInteraction || false,
-        vibrate: options.vibrate || [200, 100, 200],
-        data: options.data || {},
-        actions: options.actions || [
-          { action: 'open', title: 'Open App' },
-          { action: 'dismiss', title: 'Dismiss' }
-        ]
-      });
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(clientList => {
+      // Try to focus existing window
+      for (const client of clientList) {
+        if (client.url.includes(targetUrl) && 'focus' in client) {
+          return client.focus()
+        }
+      }
       
-      console.log('[SW] Scheduled notification shown:', options.tag);
-    } catch (error) {
-      console.error('[SW] Failed to show scheduled notification:', error);
-    }
-  }, delay);
-}
-
-// Cancel scheduled notification
-async function cancelScheduledNotification(tag) {
-  try {
-    const notifications = await self.registration.getNotifications({ tag });
-    notifications.forEach(notification => notification.close());
-    console.log('[SW] Cancelled notifications with tag:', tag);
-  } catch (error) {
-    console.error('[SW] Failed to cancel notification:', error);
-  }
-}
-
-// Show achievement notification with special styling
-async function showAchievementNotification(achievement) {
-  const achievementOptions = {
-    body: achievement.description,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/achievement-badge.png',
-    tag: `achievement-${achievement.id}`,
-    requireInteraction: true,
-    vibrate: [300, 200, 300, 200, 300],
-    actions: [
-      {
-        action: 'celebrate',
-        title: 'Celebrate! 🎉',
-        icon: '/icons/celebrate.png'
-      },
-      {
-        action: 'share',
-        title: 'Share',
-        icon: '/icons/share.png'
+      // Open new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl)
       }
-    ],
-    data: {
-      type: 'achievement',
-      achievement: achievement,
-      url: '/diary'
-    }
-  };
-  
-  await self.registration.showNotification(
-    `🎉 ${achievement.title}`, 
-    achievementOptions
-  );
-}
+    })
+  )
+})
 
-// Notification click handling
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action);
-  
-  event.notification.close();
-  
-  const { action } = event;
-  const { url } = event.notification.data || {};
-  
-  if (action === 'track-now') {
-    event.waitUntil(
-      clients.openWindow(url || '/diary/quick-start')
-    );
-  } else if (action === 'remind-later') {
-    // Schedule another notification in 2 hours
-    setTimeout(() => {
-      self.registration.showNotification('Gentle Reminder 🌱', {
-        body: 'Ready to track your environmental impact?',
-        icon: '/icons/icon-192x192.png',
-        tag: 'gentle-reminder',
-        data: { url: '/diary/quick-start' }
-      });
-    }, 2 * 60 * 60 * 1000); // 2 hours
-  } else {
-    // Default click - open the app
-    event.waitUntil(
-      clients.openWindow(url || '/diary')
-    );
+// Message handling for client communication
+self.addEventListener('message', event => {
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  } else if (event.data.type === 'GET_CACHE_SIZE') {
+    event.waitUntil(getCacheSize().then(size => {
+      event.ports[0].postMessage({ cacheSize: size })
+    }))
+  } else if (event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(clearAllCaches().then(() => {
+      event.ports[0].postMessage({ cleared: true })
+    }))
   }
-});
+})
 
-// Original message handler removed - consolidated with enhanced version above
-
-// Cache individual waste entries
-async function cacheWasteEntry(entryData) {
-  try {
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
-    const request = new Request(`/api/waste-entries/${entryData.id}`);
-    const response = new Response(JSON.stringify(entryData), {
-      headers: {
-        'Content-Type': 'application/json',
-        'sw-cache-time': Date.now().toString()
+async function getCacheSize() {
+  const cacheNames = await caches.keys()
+  let totalSize = 0
+  
+  for (const cacheName of cacheNames) {
+    const cache = await caches.open(cacheName)
+    const keys = await cache.keys()
+    
+    for (const request of keys) {
+      const response = await cache.match(request)
+      if (response) {
+        const blob = await response.blob()
+        totalSize += blob.size
       }
-    });
-    
-    await cache.put(request, response);
-    console.log('[SW] Cached waste entry:', entryData.id);
-    
-  } catch (error) {
-    console.error('[SW] Failed to cache waste entry:', error);
+    }
   }
+  
+  return totalSize
 }
 
-// Periodic cleanup registration
-self.addEventListener('activate', (event) => {
-  // Register periodic cleanup
-  if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-    self.registration.sync.register('periodic-cleanup');
-  }
-});
-
-console.log('[SW] Service Worker loaded successfully ✅');
+async function clearAllCaches() {
+  const cacheNames = await caches.keys()
+  await Promise.all(
+    cacheNames.map(cacheName => caches.delete(cacheName))
+  )
+}

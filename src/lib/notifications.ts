@@ -23,6 +23,10 @@ export class NotificationManager {
   private static instance: NotificationManager;
   private notifications: ScheduledNotification[] = [];
   private permissionGranted = false;
+  private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
+  private isInitialized = false;
+  private dailyNotificationCount = 0;
+  private lastNotificationReset: string | null = null;
 
   static getInstance(): NotificationManager {
     if (!NotificationManager.instance) {
@@ -52,41 +56,233 @@ export class NotificationManager {
   }
 
   async showNotification(config: NotificationConfig): Promise<void> {
+    if (!this.canSendNotification()) return;
+
     if (!this.permissionGranted && config.requiresPermission) {
       const granted = await this.requestPermission();
       if (!granted) return;
     }
 
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      // Use service worker for better notification handling
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(config.title, {
-        body: config.body,
-        icon: config.icon || '/icons/icon-192x192.png',
-        badge: config.badge || '/icons/icon-72x72.png',
-        tag: config.tag,
-        data: config.data,
+    try {
+      // Play sound if specified
+      if (config.data?.soundEffect) {
+        this.playSound(config.data.soundEffect);
+      }
+
+      if (this.serviceWorkerRegistration) {
+        // Use service worker for better notification handling
+        await this.serviceWorkerRegistration.showNotification(config.title, {
+          body: config.body,
+          icon: config.icon || '/icons/icon-192x192.png',
+          badge: config.badge || '/icons/badge-72x72.png',
+          tag: config.tag,
+          data: config.data,
+          requireInteraction: config.data?.requireInteraction || false,
+          vibrate: config.data?.vibrate || [200, 100, 200],
+          actions: config.data?.actions || [
+            {
+              action: 'open',
+              title: 'Open App',
+              icon: '/icons/icon-72x72.png'
+            },
+            {
+              action: 'dismiss',
+              title: 'Dismiss'
+            }
+          ]
+        } as NotificationOptions);
+      } else {
+        // Fallback to basic notifications
+        new Notification(config.title, {
+          body: config.body,
+          icon: config.icon || '/icons/icon-192x192.png',
+          tag: config.tag,
+          data: config.data
+        });
+      }
+
+      this.incrementDailyNotificationCount();
+      console.log('[NotificationManager] Notification shown:', config.title);
+    } catch (error) {
+      console.error('[NotificationManager] Failed to show notification:', error);
+    }
+  }
+
+  // Enhanced achievement notification
+  async showAchievementNotification(achievement: {
+    id: string;
+    title: string;
+    description: string;
+    type?: 'milestone' | 'streak' | 'level' | 'tree' | 'general';
+    credits?: number;
+    level?: number;
+    streak?: number;
+  }): Promise<void> {
+    const preferences = this.getStoredPreferences();
+    
+    if (!preferences.achievementNotifications) return;
+
+    const config: NotificationConfig = {
+      id: achievement.id,
+      title: achievement.title,
+      body: achievement.description,
+      tag: 'achievement',
+      requiresPermission: true,
+      data: {
+        type: 'achievement',
+        achievement,
+        url: '/diary',
+        soundEffect: preferences.achievementSounds ? 'achievement' : undefined,
+        requireInteraction: true,
+        vibrate: [300, 200, 300, 200, 300],
         actions: [
           {
-            action: 'open',
-            title: 'Open App',
-            icon: '/icons/icon-72x72.png'
+            action: 'celebrate',
+            title: 'Celebrate! 🎉',
+            icon: '/icons/celebrate.png'
           },
           {
-            action: 'dismiss',
-            title: 'Dismiss'
+            action: 'share',
+            title: 'Share',
+            icon: '/icons/share.png'
+          },
+          {
+            action: 'continue',
+            title: 'Continue',
+            icon: '/icons/continue.png'
           }
         ]
-      } as NotificationOptions);
+      }
+    };
+
+    await this.showNotification(config);
+  }
+
+  // Enhanced streak notification
+  async showStreakNotification(streak: number, customMessage?: string): Promise<void> {
+    const preferences = this.getStoredPreferences();
+    
+    if (!preferences.streakReminders) return;
+
+    // Use service worker for enhanced streak notification
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'SHOW_STREAK_NOTIFICATION',
+        data: {
+          streak,
+          message: customMessage
+        }
+      });
     } else {
-      // Fallback to basic notifications
-      new Notification(config.title, {
-        body: config.body,
-        icon: config.icon || '/icons/icon-192x192.png',
-        tag: config.tag,
-        data: config.data
+      // Fallback
+      const config: NotificationConfig = {
+        id: `streak-${streak}`,
+        title: `${streak}-Day Streak! 🔥`,
+        body: customMessage || `Amazing! You've tracked waste for ${streak} days in a row!`,
+        tag: 'streak',
+        requiresPermission: true,
+        data: {
+          soundEffect: preferences.achievementSounds ? 'streak' : undefined
+        }
+      };
+
+      await this.showNotification(config);
+    }
+  }
+
+  // Enhanced level up notification
+  async showLevelUpNotification(level: number, levelName: string): Promise<void> {
+    const preferences = this.getStoredPreferences();
+    
+    if (!preferences.levelUpNotifications) return;
+
+    // Use service worker for enhanced level up notification
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'SHOW_LEVEL_UP_NOTIFICATION',
+        data: {
+          level,
+          levelName
+        }
+      });
+    } else {
+      // Fallback
+      const config: NotificationConfig = {
+        id: `level-${level}`,
+        title: 'Level Up! 🎊',
+        body: `Congratulations! You've reached ${levelName} (Level ${level})!`,
+        tag: 'level-up',
+        requiresPermission: true,
+        data: {
+          soundEffect: preferences.achievementSounds ? 'level-up' : undefined
+        }
+      };
+
+      await this.showNotification(config);
+    }
+  }
+
+  // Weekly report notification
+  async showWeeklyReportNotification(reportData: {
+    weeklyCredits: number;
+    treesSaved: number;
+    co2Saved: number;
+  }): Promise<void> {
+    const preferences = this.getStoredPreferences();
+    
+    if (!preferences.weeklyReports) return;
+
+    // Use service worker for enhanced weekly report
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'SHOW_WEEKLY_REPORT',
+        data: reportData
+      });
+    } else {
+      // Fallback
+      const config: NotificationConfig = {
+        id: 'weekly-report',
+        title: 'Weekly Impact Report 📊',
+        body: `This week: ${reportData.weeklyCredits} credits earned, ${reportData.treesSaved} trees saved! 🌳`,
+        tag: 'weekly-report',
+        requiresPermission: true,
+        data: {
+          soundEffect: preferences.achievementSounds ? 'achievement' : undefined
+        }
+      };
+
+      await this.showNotification(config);
+    }
+  }
+
+  // Update notification preferences
+  updatePreferences(preferences: any): void {
+    localStorage.setItem('notificationPreferences', JSON.stringify(preferences));
+    
+    // Send to service worker
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'UPDATE_NOTIFICATION_PREFERENCES',
+        data: preferences
       });
     }
+
+    console.log('[NotificationManager] Preferences updated');
+  }
+
+  // Cancel all scheduled notifications
+  cancelAllNotifications(): void {
+    this.notifications = [];
+    this.saveScheduledNotifications();
+    
+    // Cancel in service worker
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'CANCEL_ALL_NOTIFICATIONS'
+      });
+    }
+
+    console.log('[NotificationManager] All notifications cancelled');
   }
 
   scheduleNotification(notification: ScheduledNotification): void {
@@ -184,10 +380,188 @@ export class NotificationManager {
     notification.scheduledFor = nextDate;
   }
 
-  init(): void {
-    this.loadScheduledNotifications();
-    this.checkAndSendNotifications();
-    this.setupDefaultNotifications();
+  async init(): Promise<void> {
+    if (this.isInitialized) return;
+
+    try {
+      // Initialize service worker registration
+      if ('serviceWorker' in navigator) {
+        this.serviceWorkerRegistration = await navigator.serviceWorker.ready;
+        this.setupServiceWorkerMessageListener();
+      }
+
+      // Load existing data
+      this.loadScheduledNotifications();
+      this.resetDailyNotificationCountIfNeeded();
+      
+      // Check permission status
+      if (Notification.permission === 'granted') {
+        this.permissionGranted = true;
+      }
+
+      // Start notification checking
+      await this.checkAndSendNotifications();
+      this.setupDefaultNotifications();
+
+      this.isInitialized = true;
+      console.log('[NotificationManager] Initialized successfully');
+    } catch (error) {
+      console.error('[NotificationManager] Failed to initialize:', error);
+    }
+  }
+
+  private setupServiceWorkerMessageListener(): void {
+    if (!navigator.serviceWorker) return;
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      const { type, data } = event.data || {};
+
+      switch (type) {
+        case 'REQUEST_NOTIFICATION_PREFERENCES':
+          this.sendPreferencesToServiceWorker();
+          break;
+        case 'NOTIFICATION_CLICKED':
+          this.handleNotificationClick(data);
+          break;
+        case 'TRIGGER_CELEBRATION':
+          this.handleCelebrationTrigger(data);
+          break;
+        default:
+          // Handle other message types
+          break;
+      }
+    });
+  }
+
+  private sendPreferencesToServiceWorker(): void {
+    const preferences = this.getStoredPreferences();
+    if (this.serviceWorkerRegistration) {
+      this.serviceWorkerRegistration.active?.postMessage({
+        type: 'UPDATE_NOTIFICATION_PREFERENCES',
+        data: preferences
+      });
+    }
+  }
+
+  private getStoredPreferences() {
+    const defaultPreferences = {
+      dailyReminders: true,
+      achievementNotifications: true,
+      streakReminders: true,
+      levelUpNotifications: true,
+      weeklyReports: true,
+      challengeNotifications: true,
+      soundEnabled: true,
+      achievementSounds: true,
+      reminderSounds: false,
+      quietHoursEnabled: false,
+      quietHoursStart: '22:00',
+      quietHoursEnd: '08:00',
+      maxNotificationsPerDay: 5
+    };
+
+    const stored = localStorage.getItem('notificationPreferences');
+    return stored ? { ...defaultPreferences, ...JSON.parse(stored) } : defaultPreferences;
+  }
+
+  private handleNotificationClick(data: any): void {
+    // Handle notification click events from service worker
+    console.log('[NotificationManager] Notification clicked:', data);
+    // Emit custom event for components to listen to
+    window.dispatchEvent(new CustomEvent('notificationClick', { detail: data }));
+  }
+
+  private handleCelebrationTrigger(data: any): void {
+    // Handle celebration triggers from service worker
+    console.log('[NotificationManager] Celebration triggered:', data);
+    if (data.soundEffect) {
+      this.playSound(data.soundEffect);
+    }
+    // Emit custom event for celebration animations
+    window.dispatchEvent(new CustomEvent('celebrationTrigger', { detail: data }));
+  }
+
+  private resetDailyNotificationCountIfNeeded(): void {
+    const today = new Date().toDateString();
+    const lastReset = localStorage.getItem('lastNotificationReset');
+    
+    if (lastReset !== today) {
+      this.dailyNotificationCount = 0;
+      this.lastNotificationReset = today;
+      localStorage.setItem('lastNotificationReset', today);
+      localStorage.setItem('dailyNotificationCount', '0');
+    } else {
+      const savedCount = localStorage.getItem('dailyNotificationCount');
+      this.dailyNotificationCount = savedCount ? parseInt(savedCount) : 0;
+    }
+  }
+
+  private incrementDailyNotificationCount(): void {
+    this.dailyNotificationCount += 1;
+    localStorage.setItem('dailyNotificationCount', this.dailyNotificationCount.toString());
+  }
+
+  private canSendNotification(): boolean {
+    const preferences = this.getStoredPreferences();
+    
+    // Check daily limit
+    if (this.dailyNotificationCount >= preferences.maxNotificationsPerDay) {
+      console.log('[NotificationManager] Daily notification limit reached');
+      return false;
+    }
+
+    // Check quiet hours
+    if (preferences.quietHoursEnabled) {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      const [startHour, startMin] = preferences.quietHoursStart.split(':').map(Number);
+      const [endHour, endMin] = preferences.quietHoursEnd.split(':').map(Number);
+      
+      const quietStart = startHour * 60 + startMin;
+      const quietEnd = endHour * 60 + endMin;
+
+      // Handle overnight quiet hours
+      if (quietStart > quietEnd) {
+        if (currentTime >= quietStart || currentTime <= quietEnd) {
+          console.log('[NotificationManager] Skipping notification due to quiet hours');
+          return false;
+        }
+      } else {
+        if (currentTime >= quietStart && currentTime <= quietEnd) {
+          console.log('[NotificationManager] Skipping notification due to quiet hours');
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private playSound(soundName: string): void {
+    try {
+      const audio = new Audio();
+      const soundMap = {
+        'success': '/sounds/success.mp3',
+        'achievement': '/sounds/achievement.mp3',
+        'level-up': '/sounds/level-up.mp3',
+        'streak': '/sounds/streak.mp3',
+        'celebrate': '/sounds/celebrate.mp3',
+        'challenge': '/sounds/challenge.mp3',
+        'gentle-chime': '/sounds/gentle-chime.mp3'
+      };
+
+      const soundPath = soundMap[soundName as keyof typeof soundMap];
+      if (soundPath) {
+        audio.src = soundPath;
+        audio.volume = 0.6;
+        audio.play().catch(() => {
+          // Silently fail - sound is optional
+        });
+      }
+    } catch (error) {
+      // Silently fail - sound is optional
+    }
   }
 
   private setupDefaultNotifications(): void {

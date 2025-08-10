@@ -4,6 +4,29 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import wasteCategories from '@/data/thailand-waste-categories.json'
+import MobileCategorySelector from '@/components/MobileCategorySelector'
+import { MobileWeightSelector } from '@/components/MobileWeightSelector'
+
+// Touch feedback utilities
+const hapticFeedback = (type: 'light' | 'medium' | 'heavy' = 'light') => {
+  if ('vibrate' in navigator) {
+    const patterns = {
+      light: 10,
+      medium: 50,
+      heavy: 100
+    };
+    navigator.vibrate(patterns[type]);
+  }
+};
+
+const addTouchFeedback = (element: HTMLElement) => {
+  element.style.transition = 'all 0.1s ease-out';
+  element.style.transform = 'scale(0.98)';
+  
+  setTimeout(() => {
+    element.style.transform = 'scale(1)';
+  }, 100);
+};
 
 interface WasteEntry {
   id: string
@@ -19,7 +42,7 @@ export default function ManualEntryPage() {
   const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedDisposal, setSelectedDisposal] = useState('')
-  const [weight, setWeight] = useState('')
+  const [weight, setWeight] = useState(0.1)
   const [notes, setNotes] = useState('')
 
   const getSelectedCategoryData = () => {
@@ -30,21 +53,20 @@ export default function ManualEntryPage() {
     const categoryData = getSelectedCategoryData()
     if (!categoryData || !selectedDisposal || !weight) return 0
     
-    const weightNum = parseFloat(weight)
     const baseCredits = (categoryData.carbonCredits as any)[selectedDisposal] || 0
-    return Math.round(baseCredits * weightNum)
+    return Math.round(baseCredits * weight)
   }
 
   const handleSave = () => {
     const categoryData = getSelectedCategoryData()
-    if (!categoryData || !selectedDisposal || !weight) return
+    if (!categoryData || !selectedDisposal || weight <= 0) return
 
     const entry: WasteEntry = {
       id: Date.now().toString(),
       categoryId: selectedCategory,
       categoryName: categoryData.name,
       disposal: selectedDisposal,
-      weight: parseFloat(weight),
+      weight: weight,
       carbonCredits: calculateCredits(),
       timestamp: new Date()
     }
@@ -63,80 +85,63 @@ export default function ManualEntryPage() {
 
   return (
     <div className="notebook-page min-h-screen">
-      <div className="max-w-2xl mx-auto p-4 sm:p-8">
-        {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-handwritten text-ink mb-4">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6 md:p-8">
+        {/* Header - Mobile optimized */}
+        <header className="text-center mb-6">
+          <h1 className="text-3xl sm:text-4xl font-handwritten text-ink mb-3">
             Manual Waste Entry ✏️
           </h1>
-          <p className="text-lg text-pencil font-sketch">
+          <p className="text-base sm:text-lg text-pencil font-sketch">
             Add waste items manually to your diary
           </p>
         </header>
 
-        <div className="bg-white/70 p-6 rounded-lg border-2 border-dashed border-pencil">
-          {/* Category Selection */}
-          <div className="mb-6">
-            <label className="block font-sketch text-ink mb-3">What type of waste? 🗑️</label>
-            <div className="grid grid-cols-2 gap-3">
-              {wasteCategories.wasteCategories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => {
-                    setSelectedCategory(category.id)
-                    setSelectedDisposal('') // Reset disposal when category changes
-                  }}
-                  className={`p-4 border-2 rounded-lg text-center transition-all ${
-                    selectedCategory === category.id
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{category.icon}</div>
-                  <div className="font-sketch text-sm">{category.name}</div>
-                  <div className="text-xs text-gray-500 mt-1">{category.nameLocal}</div>
-                </button>
-              ))}
-            </div>
+        <div className="bg-white/80 p-4 sm:p-6 rounded-2xl border-2 border-dashed border-pencil shadow-lg">
+          {/* Category Selection - Mobile optimized */}
+          <div className="mb-8">
+            <MobileCategorySelector
+              selectedCategory={selectedCategory}
+              onCategorySelect={(categoryId) => {
+                setSelectedCategory(categoryId);
+                setSelectedDisposal(''); // Reset disposal when category changes
+              }}
+              showDetails={true}
+            />
           </div>
 
-          {/* Category Info */}
-          {selectedCategory && (
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="text-2xl">{getSelectedCategoryData()?.icon}</div>
-                <div>
-                  <div className="font-sketch text-blue-800">{getSelectedCategoryData()?.name}</div>
-                  <div className="text-sm text-blue-600">{getSelectedCategoryData()?.description}</div>
-                </div>
-              </div>
-              <div className="text-xs text-blue-600">
-                Examples: {getSelectedCategoryData()?.examples.join(', ')}
-              </div>
-            </div>
-          )}
+          {/* Category info is now included in MobileCategorySelector */}
 
-          {/* Disposal Method */}
+          {/* Disposal Method - Mobile optimized */}
           {selectedCategory && (
-            <div className="mb-6">
-              <label className="block font-sketch text-ink mb-3">How did you dispose of it? ♻️</label>
-              <div className="space-y-2">
+            <div className="mb-8">
+              <label className="block font-handwritten text-ink mb-4 text-lg text-center">
+                How did you dispose of it? ♻️
+              </label>
+              <div className="grid grid-cols-1 gap-3">
                 {Object.entries((getSelectedCategoryData()?.carbonCredits as any) || {}).map(([method, credits]) => (
                   <button
                     key={method}
-                    onClick={() => setSelectedDisposal(method)}
-                    className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                    onClick={(e) => {
+                      hapticFeedback('medium');
+                      addTouchFeedback(e.currentTarget);
+                      setSelectedDisposal(method);
+                    }}
+                    className={`min-h-[64px] p-4 text-left rounded-xl border-2 transition-all duration-200 shadow-sm hover:shadow-md active:shadow-sm ${
                       selectedDisposal === method
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-green-500 bg-gradient-to-r from-green-50 to-green-100 ring-2 ring-green-200'
+                        : 'border-gray-300 bg-white hover:border-green-400 hover:bg-gradient-to-r hover:from-green-25 hover:to-green-50 active:border-green-500'
                     }`}
+                    style={{ touchAction: 'manipulation' }}
+                    aria-label={`Select ${method.replace('_', ' ')} disposal method`}
                   >
                     <div className="flex justify-between items-center">
-                      <div className="font-sketch capitalize">
+                      <div className="font-sketch capitalize text-base font-semibold">
                         {method.replace('_', ' ')}
                       </div>
-                      <div className={`font-semibold ${
-                        (credits as number) > 0 ? 'text-green-600' : 'text-red-600'
+                      <div className={`font-bold px-3 py-1 rounded-full text-sm ${
+                        (credits as number) > 0 
+                          ? 'bg-green-200 text-green-800' 
+                          : 'bg-red-200 text-red-800'
                       }`}>
                         {(credits as number) > 0 ? '+' : ''}{(credits as number)} CC/kg
                       </div>
@@ -147,92 +152,101 @@ export default function ManualEntryPage() {
             </div>
           )}
 
-          {/* Weight Input */}
+          {/* Weight Input - Mobile optimized */}
           {selectedDisposal && (
-            <div className="mb-6">
-              <label className="block font-sketch text-ink mb-3">How much did it weigh? ⚖️</label>
-              <div className="flex gap-3">
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="0.5"
-                  className="flex-1 p-3 border rounded-lg font-sketch focus:ring-2 focus:ring-green-500"
-                />
-                <div className="flex items-center px-3 bg-gray-100 rounded-lg font-sketch text-gray-600">
-                  kg
-                </div>
+            <div className="mb-8">
+              <div className="text-center mb-4">
+                <label className="font-handwritten text-ink text-lg">
+                  How much did it weigh? ⚖️
+                </label>
               </div>
-              
-              {/* Common weight suggestions */}
-              <div className="mt-2 flex gap-2 flex-wrap">
-                {['0.1', '0.2', '0.5', '1.0', '2.0'].map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setWeight(suggestion)}
-                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 font-sketch"
-                  >
-                    {suggestion}kg
-                  </button>
-                ))}
-              </div>
+              <MobileWeightSelector
+                value={weight}
+                onChange={setWeight}
+                showVisualReference={true}
+                className=""
+              />
             </div>
           )}
 
-          {/* Credits Preview */}
-          {selectedCategory && selectedDisposal && weight && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg">
+          {/* Credits Preview - Enhanced */}
+          {selectedCategory && selectedDisposal && weight > 0 && (
+            <div className="mb-8 p-6 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 rounded-2xl border-2 border-green-200 shadow-inner">
               <div className="text-center">
-                <div className="font-sketch text-green-800 mb-2">Carbon Credits Earned</div>
-                <div className={`text-4xl font-handwritten ${
+                <div className="font-sketch text-green-800 mb-3 text-lg font-semibold">
+                  Carbon Credits Earned
+                </div>
+                <div className={`text-5xl font-handwritten mb-3 ${
                   calculateCredits() > 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {calculateCredits() > 0 ? '+' : ''}{calculateCredits()} CC
                 </div>
-                <div className="text-sm text-gray-600 mt-2">
-                  {parseFloat(weight)}kg × {(getSelectedCategoryData()?.carbonCredits as any)?.[selectedDisposal]} credits/kg
+                <div className="text-base text-gray-600 font-sketch bg-white/60 rounded-lg p-3">
+                  {weight.toFixed(1)}kg × {(getSelectedCategoryData()?.carbonCredits as any)?.[selectedDisposal]} credits/kg
+                </div>
+                <div className="mt-3 text-sm text-gray-600 font-sketch">
+                  {calculateCredits() > 0 
+                    ? '🌱 Positive impact on the environment!' 
+                    : '⚠️ Consider better disposal methods for more credits'
+                  }
                 </div>
               </div>
             </div>
           )}
 
-          {/* Tips */}
-          {selectedCategory && (
-            <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
-              <h4 className="font-sketch text-yellow-800 mb-2">💡 Tips for {getSelectedCategoryData()?.name}:</h4>
-              <ul className="text-sm text-yellow-700 space-y-1">
-                {getSelectedCategoryData()?.tips.map((tip, index) => (
-                  <li key={index}>• {tip}</li>
+          {/* Tips - Enhanced */}
+          {selectedCategory && getSelectedCategoryData()?.tips && (
+            <div className="mb-8 p-5 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl border-2 border-yellow-200 shadow-inner">
+              <h4 className="font-handwritten text-yellow-800 mb-4 text-lg flex items-center justify-center gap-2">
+                <span className="text-xl">💡</span>
+                <span>Tips for {getSelectedCategoryData()?.name}</span>
+              </h4>
+              <ul className="space-y-3">
+                {getSelectedCategoryData()?.tips.map((tip: string, index: number) => (
+                  <li key={index} className="flex items-start gap-3 bg-white/60 p-3 rounded-xl">
+                    <span className="text-yellow-600 font-bold text-lg mt-0.5">•</span>
+                    <span className="text-sm text-yellow-800 font-sketch leading-relaxed flex-1">{tip}</span>
+                  </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Notes (Optional) */}
-          <div className="mb-6">
-            <label className="block font-sketch text-ink mb-3">Notes (optional) 📝</label>
+          {/* Notes (Optional) - Mobile optimized */}
+          <div className="mb-8">
+            <label className="block font-handwritten text-ink mb-3 text-lg text-center">
+              Notes (optional) 📝
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              onFocus={() => hapticFeedback('light')}
               placeholder="Any additional details..."
-              className="w-full p-3 border rounded-lg font-sketch focus:ring-2 focus:ring-green-500 h-20 resize-none"
+              className="w-full p-4 border-2 border-gray-300 rounded-xl font-sketch focus:ring-4 focus:ring-green-400 focus:ring-offset-2 focus:border-green-500 outline-none bg-white min-h-[88px] text-base resize-none"
+              style={{ fontSize: '16px', touchAction: 'manipulation' }}
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          {/* Action Buttons - Mobile optimized */}
+          <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/diary"
-              className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 font-sketch rounded-lg hover:bg-gray-50 text-center"
+              className="flex-1 min-h-[56px] px-6 py-4 border-2 border-gray-400 text-gray-700 font-sketch rounded-xl hover:bg-gray-50 active:bg-gray-100 text-center flex items-center justify-center transition-all duration-200 bg-white shadow-sm text-base"
+              style={{ touchAction: 'manipulation' }}
             >
               Cancel
             </Link>
             <button
-              onClick={handleSave}
+              onClick={(e) => {
+                if (!selectedCategory || !selectedDisposal || !weight) return;
+                hapticFeedback('heavy');
+                addTouchFeedback(e.currentTarget);
+                handleSave();
+              }}
               disabled={!selectedCategory || !selectedDisposal || !weight}
-              className="flex-1 px-4 py-3 bg-green-leaf text-white font-sketch rounded-lg hover:bg-green-600 disabled:opacity-50"
+              className="flex-1 min-h-[56px] px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-sketch rounded-xl hover:from-green-600 hover:to-green-700 active:from-green-700 active:to-green-800 disabled:from-gray-300 disabled:to-gray-300 disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-offset-2 disabled:cursor-not-allowed transition-all duration-200 shadow-lg disabled:shadow-none text-base font-semibold"
+              style={{ touchAction: 'manipulation' }}
+              aria-label="Save waste entry to diary"
             >
               Save Entry
             </button>

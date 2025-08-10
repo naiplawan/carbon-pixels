@@ -1,0 +1,396 @@
+/* Mobile-First Optimizations for Thailand Waste Diary */
+
+/* CSS Custom Properties for Mobile */
+:root {
+  /* Touch targets */
+  --touch-target-min: 44px;
+  --touch-target-recommended: 48px;
+  --touch-target-comfortable: 56px;
+  
+  /* Safe areas for modern mobile devices */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  
+  /* Mobile spacing */
+  --mobile-padding: 16px;
+  --mobile-gap: 12px;
+  
+  /* Animation performance */
+  --animation-duration: 0.3s;
+  --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animation-duration: 0.01ms !important;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile-specific base styles */
+@media (max-width: 768px) {
+  /* Touch optimization */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Allow text selection for inputs and content */
+  input, 
+  textarea, 
+  [contenteditable], 
+  .selectable {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+  }
+  
+  /* Prevent zoom on input focus (iOS Safari) */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  
+  /* Smooth scrolling with momentum (iOS) */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Safe area padding for iPhone X+ */
+  .safe-top {
+    padding-top: var(--safe-area-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: var(--safe-area-bottom);
+  }
+  
+  .safe-left {
+    padding-left: var(--safe-area-left);
+  }
+  
+  .safe-right {
+    padding-right: var(--safe-area-right);
+  }
+  
+  .safe-x {
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+  
+  .safe-y {
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+  }
+}
+
+/* Touch-friendly button styles */
+.touch-button {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-button:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.1;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.touch-button:active:before {
+  width: 200px;
+  height: 200px;
+}
+
+/* Mobile-optimized cards */
+.mobile-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: var(--mobile-padding);
+  margin-bottom: var(--mobile-gap);
+  touch-action: manipulation;
+}
+
+.mobile-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+/* Mobile typography */
+@media (max-width: 768px) {
+  h1 { font-size: 1.75rem; line-height: 1.2; }
+  h2 { font-size: 1.5rem; line-height: 1.3; }
+  h3 { font-size: 1.25rem; line-height: 1.4; }
+  
+  /* Ensure readable text */
+  body { line-height: 1.6; }
+  
+  /* Optimize button text */
+  button {
+    letter-spacing: 0.025em;
+  }
+}
+
+/* Mobile input optimizations */
+.mobile-input {
+  min-height: var(--touch-target-comfortable);
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.mobile-input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Mobile select styling */
+.mobile-select {
+  min-height: var(--touch-target-comfortable);
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  appearance: none;
+  font-size: 16px;
+}
+
+/* Mobile grid optimizations */
+.mobile-grid {
+  display: grid;
+  gap: var(--mobile-gap);
+}
+
+.mobile-grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.mobile-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.mobile-grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+/* Thai cultural mobile enhancements */
+.thai-gradient {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+}
+
+.thai-gold {
+  color: #fbbf24;
+}
+
+.thai-red {
+  color: #dc2626;
+}
+
+.thai-blue {
+  color: #2563eb;
+}
+
+/* Mobile loading states */
+.mobile-skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Mobile modal optimizations */
+.mobile-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-modal::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin: 12px auto 16px;
+}
+
+/* Mobile performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Hardware acceleration for smooth animations */
+.mobile-animate {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Mobile-specific spacing utilities */
+@media (max-width: 768px) {
+  .mobile-px { padding-left: var(--mobile-padding); padding-right: var(--mobile-padding); }
+  .mobile-py { padding-top: var(--mobile-padding); padding-bottom: var(--mobile-padding); }
+  .mobile-p { padding: var(--mobile-padding); }
+  .mobile-mx { margin-left: var(--mobile-padding); margin-right: var(--mobile-padding); }
+  .mobile-my { margin-top: var(--mobile-padding); margin-bottom: var(--mobile-padding); }
+  .mobile-m { margin: var(--mobile-padding); }
+  .mobile-gap { gap: var(--mobile-gap); }
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  .mobile-card {
+    background: #1f2937;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .mobile-input,
+  .mobile-select {
+    background: #374151;
+    border-color: #4b5563;
+    color: white;
+  }
+  
+  .mobile-skeleton {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .mobile-card {
+    border: 2px solid black;
+  }
+  
+  .touch-button {
+    border: 2px solid;
+  }
+  
+  .mobile-input,
+  .mobile-select {
+    border-width: 3px;
+  }
+}
+
+/* Large text mode */
+@media (prefers-font-size: large) {
+  .mobile-input,
+  .mobile-select {
+    font-size: 18px;
+    min-height: calc(var(--touch-target-comfortable) + 8px);
+  }
+  
+  .touch-button {
+    min-height: calc(var(--touch-target-comfortable) + 8px);
+    min-width: calc(var(--touch-target-comfortable) + 8px);
+  }
+}
+
+/* Print optimization (rare but useful) */
+@media print {
+  .mobile-modal,
+  .touch-button,
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  :root {
+    --mobile-padding: 12px;
+    --mobile-gap: 8px;
+  }
+  
+  .mobile-modal {
+    max-height: 80vh;
+  }
+  
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+}
+
+/* Ultra-small screens (older phones) */
+@media (max-width: 320px) {
+  :root {
+    --touch-target-min: 40px;
+    --touch-target-recommended: 44px;
+    --mobile-padding: 12px;
+    --mobile-gap: 8px;
+  }
+  
+  h1 { font-size: 1.5rem; }
+  
+  .mobile-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .mobile-grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+}

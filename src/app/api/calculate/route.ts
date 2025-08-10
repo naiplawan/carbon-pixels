@@ -76,10 +76,12 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     }
 
+    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    
     return NextResponse.json(response, { 
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': allowedOrigin,
         'Access-Control-Allow-Methods': 'POST',
         'Access-Control-Allow-Headers': 'Content-Type',
       }

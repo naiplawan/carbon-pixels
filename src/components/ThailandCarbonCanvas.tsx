@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useRef, memo } from 'react'
 import { Answer } from '@/lib/api'
+import { useCanvasAnimation } from '@/lib/animation-frame'
 
 interface ThailandCarbonCanvasProps {
   currentScore: number
@@ -9,25 +10,25 @@ interface ThailandCarbonCanvasProps {
   currentQuestion: string
 }
 
-export default function ThailandCarbonCanvas({ currentScore, answers, currentQuestion }: ThailandCarbonCanvasProps) {
+const ThailandCarbonCanvas = memo(function ThailandCarbonCanvas({ currentScore, answers, currentQuestion }: ThailandCarbonCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationFrameRef = useRef<number | null>(null)
+  const animationTimeRef = useRef(0)
 
-  useEffect(() => {
-    if (!canvasRef.current) return
+  // Use the improved canvas animation hook with automatic cleanup
+  useCanvasAnimation(
+    canvasRef,
+    (ctx, deltaTime) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
 
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+      // Set canvas size if needed
+      if (canvas.width !== 500 || canvas.height !== 400) {
+        canvas.width = 500
+        canvas.height = 400
+      }
 
-    // Set canvas size
-    canvas.width = 500
-    canvas.height = 400
-
-    let animationTime = 0
-
-    function animate() {
-      if (!ctx || !canvas) return
+      // Update animation time
+      animationTimeRef.current += deltaTime * 0.00002
 
       // Clear canvas with Thailand-inspired background
       ctx.fillStyle = '#faf9f7'
@@ -37,26 +38,16 @@ export default function ThailandCarbonCanvas({ currentScore, answers, currentQue
       drawThaiNotebookGrid(ctx, canvas)
 
       // Draw the Thailand carbon journey
-      drawThailandCarbonJourney(ctx, canvas, animationTime)
+      drawThailandCarbonJourney(ctx, canvas, animationTimeRef.current)
 
       // Draw enhanced score visualization
-      drawThailandScoreVisualization(ctx, canvas, currentScore, animationTime)
+      drawThailandScoreVisualization(ctx, canvas, currentScore, animationTimeRef.current)
 
       // Draw Thailand flag or landmarks
-      drawThailandElements(ctx, canvas, animationTime)
-
-      animationTime += 0.02
-      animationFrameRef.current = requestAnimationFrame(animate)
-    }
-
-    animate()
-
-    return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-    }
-  }, [currentScore, answers, currentQuestion]) // eslint-disable-line react-hooks/exhaustive-deps
+      drawThailandElements(ctx, canvas, animationTimeRef.current)
+    },
+    true // Animation is running
+  )
 
   const drawThaiNotebookGrid = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     // Thai-style grid with subtle temple pattern
@@ -774,4 +765,12 @@ export default function ThailandCarbonCanvas({ currentScore, answers, currentQue
       </div>
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.currentScore === nextProps.currentScore &&
+    JSON.stringify(prevProps.answers) === JSON.stringify(nextProps.answers) &&
+    prevProps.currentQuestion === nextProps.currentQuestion
+  )
+})
+
+export default ThailandCarbonCanvas

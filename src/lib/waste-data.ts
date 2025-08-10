@@ -1,15 +1,11 @@
 // Optimized waste data loading with caching, compression and error handling
-interface WasteDataCache {
-  wasteCategories?: any[];
-  gamification?: any;
-  timestamp?: number;
-}
+import type { WasteCategory, GamificationData, WasteDataCache, WasteDataSet } from '@/types/waste';
 
 let wasteDataCache: WasteDataCache = {};
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 // Compressed data loading with error boundaries
-export async function getWasteCategories(): Promise<any[]> {
+export async function getWasteCategories(): Promise<WasteCategory[]> {
   // Check cache validity
   const now = Date.now();
   if (wasteDataCache?.wasteCategories && 
@@ -40,7 +36,7 @@ export async function getWasteCategories(): Promise<any[]> {
   }
 }
 
-export async function getGamificationData() {
+export async function getGamificationData(): Promise<GamificationData | undefined> {
   if (wasteDataCache?.gamification) {
     return wasteDataCache.gamification;
   }
@@ -60,12 +56,12 @@ export function preloadWasteData() {
 }
 
 // Memory-efficient category lookup
-export function getCategoryById(id: string, categories: any[]) {
+export function getCategoryById(id: string, categories: WasteCategory[]): WasteCategory | undefined {
   return categories.find(cat => cat.id === id);
 }
 
 // Optimized carbon credit calculation
-export function calculateCarbonCredits(categoryId: string, disposal: string, weight: number, categories: any[]) {
+export function calculateCarbonCredits(categoryId: string, disposal: string, weight: number, categories: WasteCategory[]): number {
   const category = getCategoryById(categoryId, categories);
   if (!category?.carbonCredits?.[disposal]) return 0;
   

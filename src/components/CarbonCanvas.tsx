@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useRef, memo } from 'react'
 import { Answer } from '@/lib/api'
+import { useCanvasAnimation } from '@/lib/animation-frame'
 
 interface CarbonCanvasProps {
   currentScore: number
@@ -9,25 +10,25 @@ interface CarbonCanvasProps {
   currentQuestion: string
 }
 
-export default function CarbonCanvas({ currentScore, answers, currentQuestion }: CarbonCanvasProps) {
+const CarbonCanvas = memo(function CarbonCanvas({ currentScore, answers, currentQuestion }: CarbonCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationFrameRef = useRef<number | null>(null)
+  const animationTimeRef = useRef(0)
 
-  useEffect(() => {
-    if (!canvasRef.current) return
+  // Use the improved canvas animation hook with automatic cleanup
+  useCanvasAnimation(
+    canvasRef,
+    (ctx, deltaTime) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
 
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+      // Set canvas size if needed
+      if (canvas.width !== 500 || canvas.height !== 400) {
+        canvas.width = 500
+        canvas.height = 400
+      }
 
-    // Set canvas size
-    canvas.width = 500
-    canvas.height = 400
-
-    let animationTime = 0
-
-    function animate() {
-      if (!ctx || !canvas) return
+      // Update animation time
+      animationTimeRef.current += deltaTime * 0.00002
 
       // Clear canvas with paper-like background
       ctx.fillStyle = '#faf9f7'
@@ -54,23 +55,13 @@ export default function CarbonCanvas({ currentScore, answers, currentQuestion }:
       ctx.stroke()
 
       // Draw the carbon journey
-      drawCarbonJourney(ctx, canvas, animationTime)
+      drawCarbonJourney(ctx, canvas, animationTimeRef.current)
 
       // Draw score graph
-      drawScoreGraph(ctx, canvas, currentScore, animationTime)
-
-      animationTime += 0.02
-      animationFrameRef.current = requestAnimationFrame(animate)
-    }
-
-    animate()
-
-    return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-    }
-  }, [currentScore, answers, currentQuestion]) // eslint-disable-line react-hooks/exhaustive-deps
+      drawScoreGraph(ctx, canvas, currentScore, animationTimeRef.current)
+    },
+    true // Animation is running
+  )
 
   const drawCarbonJourney = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, time: number) => {
     const centerX = canvas.width / 2
@@ -528,4 +519,12 @@ export default function CarbonCanvas({ currentScore, answers, currentQuestion }:
       </div>
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.currentScore === nextProps.currentScore &&
+    JSON.stringify(prevProps.answers) === JSON.stringify(nextProps.answers) &&
+    prevProps.currentQuestion === nextProps.currentQuestion
+  )
+})
+
+export default CarbonCanvas
