@@ -87,15 +87,19 @@ src/
 - **Thailand Ranking**: Simulated percentile based on total credits
 - **Energy Conversion**: Credits to kWh saved visualization
 
-### 📱 **Advanced Mobile Navigation System**
-- **MobileNavigationLayout**: Main wrapper providing navigation context to all pages
-- **BottomTabNavigation**: Primary navigation with Home, Scanner, History tabs
-- **FloatingActionButton**: Context-aware quick actions (add entry, scan waste)
-- **GestureNavigation**: Swipe gestures for page transitions and pull-to-refresh
-- **NavigationProvider**: React context managing navigation state and preferences
-- **Thai Cultural Animations**: Wai gestures, lotus blooming, traditional color schemes
-- **Haptic Feedback**: Device vibration for tactile confirmation of user actions
-- **Safe Area Support**: iPhone X+ notch and home indicator compatibility
+### 📱 **Responsive Navigation System**
+- **Desktop Navigation**: Horizontal top bar with dark minimalist design and hover effects
+- **Tablet Navigation**: Hamburger menu with slide-out drawer for space efficiency
+- **Mobile-Only Bottom Navigation**: Bottom tab bar exclusively for mobile devices (<640px)
+  - Home, Scanner, History, Profile tabs with Thai dual-language labels
+  - Floating Action Button for quick waste entry
+  - Safe area support for iPhone X+ and modern devices
+- **Advanced Mobile Features**:
+  - **MobileNavigationLayout**: Main wrapper providing navigation context to all pages
+  - **GestureNavigation**: Swipe gestures for page transitions and pull-to-refresh
+  - **NavigationProvider**: React context managing navigation state and preferences
+  - **Thai Cultural Animations**: Wai gestures, lotus blooming, traditional color schemes
+  - **Haptic Feedback**: Device vibration for tactile confirmation of user actions
 
 ## Data Structure
 
@@ -195,10 +199,22 @@ Example category structure:
 - **Typography**: Patrick Hand and Kalam fonts for authentic handwritten look
 - **Color Scheme**: Warm paper tones with green eco accents
 
-### Mobile-First Responsive Design
-- **Touch-Friendly**: Large tap targets for waste category selection
+### Responsive Design Architecture
+- **Desktop-First Navigation**: Clean horizontal top bar with dark minimalist aesthetic
+- **Tablet-Optimized**: Hamburger menu with slide-out drawer, optimized for touch
+- **Mobile-Only Bottom Navigation**: Bottom tab bar restricted to phones (<640px)
+  - Removes visual clutter on larger screens
+  - Provides familiar mobile navigation patterns
+  - Includes floating action button for quick actions
+- **Touch-Friendly**: Large tap targets (minimum 44px) for waste category selection
 - **Grid Layouts**: Responsive cards for statistics and categories
 - **Progressive Enhancement**: Works without JavaScript for core functionality
+
+### Navigation Breakpoints
+- **Mobile (< 640px)**: Bottom navigation + FAB button visible, top hamburger menu
+- **Tablet (640px - 1024px)**: Only top navigation with hamburger menu, bottom navigation hidden
+- **Desktop (≥ 1024px)**: Full horizontal navigation bar, all bottom navigation hidden
+- **Responsive Classes**: Uses `sm:hidden` for mobile-only elements, `lg:hidden` for mobile/tablet elements
 
 ## Data Persistence Strategy
 

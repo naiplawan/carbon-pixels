@@ -104,7 +104,7 @@ function NavigationLayoutInner({ children }: MobileNavigationLayoutProps) {
             onSwipeNavigation={handleSwipeNavigation}
             onPullRefresh={handlePullRefresh}
           >
-            <div className="min-h-screen pb-20">
+            <div className="min-h-screen sm:pb-0 pb-20">
               <AnimatePresence mode="wait">
                 <PageTransition
                   key={currentPath}
@@ -117,7 +117,7 @@ function NavigationLayoutInner({ children }: MobileNavigationLayoutProps) {
             </div>
           </GestureNavigation>
         ) : (
-          <div className="min-h-screen pb-20">
+          <div className="min-h-screen sm:pb-0 pb-20">
             <AnimatePresence mode="wait">
               <PageTransition
                 key={currentPath}
@@ -150,7 +150,7 @@ function NavigationLayoutInner({ children }: MobileNavigationLayoutProps) {
         )}
       </AnimatePresence>
 
-      {/* Bottom Tab Navigation */}
+      {/* Bottom Tab Navigation - Mobile Only */}
       <AnimatePresence>
         {isBottomNavVisible && (
           <motion.div
@@ -162,6 +162,7 @@ function NavigationLayoutInner({ children }: MobileNavigationLayoutProps) {
               stiffness: 300, 
               damping: 25 
             }}
+            className="sm:hidden" // Hide on tablet (sm) and desktop (md+) sizes
           >
             <BottomTabNavigation />
           </motion.div>

@@ -653,7 +653,7 @@ export default function WasteDiaryPage() {
       <FloatingHelp />
       
       {/* Mobile optimizations applied via CSS */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-md border-t border-gray-200 safe-bottom">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-md border-t border-gray-200 safe-bottom">
         <div className="flex items-center justify-center h-full text-sm text-gray-600">
           📱 Mobile-optimized Thailand Waste Diary
         </div>

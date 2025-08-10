@@ -125,7 +125,7 @@ export function MobileBottomNav() {
   return (
     <>
       {/* Safe area spacer */}
-      <div className="h-20 md:hidden" />
+      <div className="h-20 sm:hidden" />
       
       {/* Bottom navigation */}
       <AnimatePresence>
@@ -135,7 +135,7 @@ export function MobileBottomNav() {
             animate={{ y: 0 }}
             exit={{ y: 100 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+            className="fixed bottom-0 left-0 right-0 z-50 sm:hidden"
             style={{
               paddingBottom: 'env(safe-area-inset-bottom, 0px)'
             }}
@@ -222,7 +222,7 @@ export function MobileBottomNav() {
       {/* Floating action button for quick add */}
       <motion.button
         onClick={() => router.push('/diary/manual')}
-        className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 md:hidden"
+        className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:hidden"
         whileTap={{ scale: 0.9 }}
         whileHover={{ scale: 1.05 }}
         initial={{ scale: 0 }}
