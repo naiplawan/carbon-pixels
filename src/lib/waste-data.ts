@@ -63,7 +63,10 @@ export function getCategoryById(id: string, categories: WasteCategory[]): WasteC
 // Optimized carbon credit calculation
 export function calculateCarbonCredits(categoryId: string, disposal: string, weight: number, categories: WasteCategory[]): number {
   const category = getCategoryById(categoryId, categories);
-  if (!category?.carbonCredits?.[disposal]) return 0;
+  if (!category?.carbonCredits) return 0;
   
-  return Math.round(category.carbonCredits[disposal] * weight);
+  const credits = category.carbonCredits[disposal as keyof typeof category.carbonCredits];
+  if (typeof credits !== 'number') return 0;
+  
+  return Math.round(credits * weight);
 }

@@ -5,24 +5,14 @@ import { useNetworkAwareLoading, useBatteryAwareOptimizations } from '@/hooks/us
 import { BatteryOptimizedAnimation, OptimizedLoadingSpinner, OptimizedInteraction } from './BatteryOptimizedAnimations'
 import SkeletonLoader from './SkeletonLoader'
 import { performanceMonitor } from '@/lib/performance-monitor'
+import { WasteEntry } from '@/types/waste'
 
 // Lazy load the full waste scanner for better performance
 const FullWasteScanner = lazy(() => import('@/components/WasteScanner'))
 
-interface WasteEntry {
-  id: string
-  categoryId: string
-  categoryName: string
-  disposal: string
-  weight: number
-  carbonCredits: number
-  timestamp: Date
-  image?: string
-}
-
 interface MobileWasteScannerProps {
   onClose: () => void
-  onSave: (entry: WasteEntry) => void
+  onSave: (entry: WasteEntry) => void | Promise<void>
   wasteCategories: any[]
 }
 
@@ -269,7 +259,7 @@ function MobileWasteEntryForm({
       disposal: selectedDisposal,
       weight: parseFloat(weight),
       carbonCredits: calculateCredits(),
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     }
 
     onSave(entry)

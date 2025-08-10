@@ -11,8 +11,8 @@ export const useAnimationFrame = (
   callback: (deltaTime: number) => void,
   isRunning: boolean = true
 ) => {
-  const requestRef = useRef<number>()
-  const previousTimeRef = useRef<number>()
+  const requestRef = useRef<number | undefined>(undefined)
+  const previousTimeRef = useRef<number | undefined>(undefined)
   const callbackRef = useRef(callback)
 
   // Update callback ref when it changes
@@ -112,7 +112,7 @@ export class CanvasAnimationManager {
  * Hook for canvas animations with automatic cleanup
  */
 export const useCanvasAnimation = (
-  canvasRef: React.RefObject<HTMLCanvasElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
   draw: (ctx: CanvasRenderingContext2D, deltaTime: number) => void,
   isRunning: boolean = true
 ) => {

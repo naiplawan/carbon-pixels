@@ -4,19 +4,7 @@
  */
 
 import wasteCategories from '@/data/thailand-waste-categories.json';
-
-// Types
-export type DisposalMethod = 'disposed' | 'recycled' | 'avoided';
-
-export interface WasteCategory {
-  id: string;
-  name: string;
-  nameLocal: string;
-  icon: string;
-  carbonCredits: Record<DisposalMethod, number>;
-  examples: string[];
-  tips: string[];
-}
+import { WasteCategory, DisposalMethod } from '@/types/waste';
 
 export interface CalculationResult {
   credits: number;
@@ -175,10 +163,13 @@ export function getDisposalAlternatives(
  * Get user-friendly disposal method description
  */
 function getDisposalDescription(method: DisposalMethod): string {
-  const descriptions = {
+  const descriptions: Record<DisposalMethod, string> = {
     disposed: 'Send to landfill',
     recycled: 'Recycle properly',
+    composted: 'Compost organic waste',
     avoided: 'Avoid generating this waste',
+    donated: 'Donate for reuse',
+    reused: 'Reuse or repurpose',
   };
   return descriptions[method] || method;
 }

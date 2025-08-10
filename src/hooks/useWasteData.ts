@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocalStorageArray, useLocalStorageNumber, useLocalStorageObject } from './useLocalStorage';
+import { useLocalStorage, useLocalStorageArray, useLocalStorageNumber, useLocalStorageObject } from './useLocalStorage';
 import React, { useMemo } from 'react';
 
 // Types
@@ -222,7 +222,7 @@ export function useUserPreferences() {
 // Daily streak management
 export function useDailyStreak() {
   const [streak, setStreak] = useLocalStorageNumber(STORAGE_KEYS.DAILY_STREAK, 0);
-  const [lastVisit, setLastVisit] = useLocalStorageObject<string | null>(
+  const [lastVisit, setLastVisit] = useLocalStorage<string | null>(
     STORAGE_KEYS.LAST_VISIT,
     null
   );

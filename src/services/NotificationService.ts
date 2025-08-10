@@ -159,7 +159,7 @@ class NotificationService {
     }
 
     // Auto-remove after duration
-    if (fullToast.duration > 0) {
+    if (fullToast.duration && fullToast.duration > 0) {
       setTimeout(() => {
         this.dismissToast(id);
       }, fullToast.duration);

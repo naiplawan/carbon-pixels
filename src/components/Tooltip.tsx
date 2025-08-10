@@ -173,20 +173,13 @@ export default function Tooltip({
       opacity: 1,
       scale: 1,
       y: 0,
-      x: 0,
-      transition: {
-        duration: 0.15,
-        ease: "easeOut"
-      }
+      x: 0
     },
     exit: {
       opacity: 0,
       scale: 0.8,
       y: actualPosition === 'top' ? 5 : actualPosition === 'bottom' ? -5 : 0,
-      x: actualPosition === 'left' ? 5 : actualPosition === 'right' ? -5 : 0,
-      transition: {
-        duration: 0.1
-      }
+      x: actualPosition === 'left' ? 5 : actualPosition === 'right' ? -5 : 0
     }
   }
 
@@ -210,6 +203,7 @@ export default function Tooltip({
             initial="hidden"
             animate="visible"
             exit="exit"
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="absolute z-50"
             style={{
               ...getTooltipPosition(),

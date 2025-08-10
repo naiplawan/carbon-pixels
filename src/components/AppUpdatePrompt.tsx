@@ -12,6 +12,8 @@ import { triggerHaptic } from '@/lib/haptic-feedback'
 import { useTouchFeedback } from '@/lib/touch-feedback'
 
 interface AppUpdatePromptProps {
+  isOpen?: boolean
+  onClose?: () => void
   onUpdate?: () => void
   onDismiss?: () => void
 }
@@ -23,7 +25,7 @@ interface UpdateInfo {
   size?: string
 }
 
-export default function AppUpdatePrompt({ onUpdate, onDismiss }: AppUpdatePromptProps) {
+export default function AppUpdatePrompt({ isOpen, onClose, onUpdate, onDismiss }: AppUpdatePromptProps) {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)

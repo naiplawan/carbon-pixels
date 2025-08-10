@@ -8,7 +8,7 @@ import { WasteEntry, WasteCategory, DisposalMethod } from '@/types/waste'
 
 interface WasteScannerProps {
   onClose: () => void
-  onSave: (entry: WasteEntry) => void
+  onSave: (entry: WasteEntry) => void | Promise<void>
 }
 
 // WasteEntry interface is now imported from types
@@ -97,7 +97,7 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
     if (!detectedCategory || !selectedDisposal || !weight) return 0
     
     const weightNum = parseFloat(weight)
-    const baseCredits = detectedCategory.carbonCredits[selectedDisposal] || 0
+    const baseCredits = detectedCategory?.carbonCredits[selectedDisposal] || 0
     return Math.round(baseCredits * weightNum)
   }
 
@@ -106,12 +106,12 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
 
     const entry: WasteEntry = {
       id: Date.now().toString(),
-      categoryId: detectedCategory.id,
-      categoryName: detectedCategory.name,
+      categoryId: detectedCategory?.id,
+      categoryName: detectedCategory?.name,
       disposal: selectedDisposal,
       weight: parseFloat(weight),
       carbonCredits: calculateCredits(),
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     }
 
     onSave(entry)
@@ -170,7 +170,7 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
               ref={closeButtonRef}
               onClick={(e) => {
                 triggerHaptic('medium');
-                addTouchFeedback(e.currentTarget);
+                applyTouchFeedback(e.currentTarget);
                 onClose();
               }}
               className="min-w-[44px] min-h-[44px] w-12 h-12 flex items-center justify-center text-gray-600 hover:text-gray-800 active:text-gray-900 text-xl focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-offset-2 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all duration-150 shadow-sm"
@@ -205,7 +205,7 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                       <button
                         onClick={(e) => {
                           triggerHaptic('heavy');
-                          addTouchFeedback(e.currentTarget);
+                          applyTouchFeedback(e.currentTarget);
                           simulateScanning();
                         }}
                         className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl font-sketch hover:from-green-600 hover:to-green-700 active:from-green-700 active:to-green-800 focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 shadow-lg active:shadow-md min-h-[56px] text-lg"
@@ -255,7 +255,7 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                       key={category.id}
                       onClick={(e) => {
                         triggerHaptic('medium');
-                        addTouchFeedback(e.currentTarget);
+                        applyTouchFeedback(e.currentTarget);
                         setDetectedCategory(category);
                         setShowResults(true);
                       }}
@@ -274,13 +274,13 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
             <>
               {/* Scan Results - Enhanced */}
               <div className="text-center mb-6 bg-gradient-to-br from-blue-50 to-green-50 p-6 rounded-2xl border-2 border-blue-200">
-                <div className="text-7xl mb-4">{detectedCategory.icon}</div>
+                <div className="text-7xl mb-4">{detectedCategory?.icon}</div>
                 <h3 className="text-3xl font-handwritten text-ink mb-3">
-                  {detectedCategory.name}
+                  {detectedCategory?.name}
                 </h3>
-                <p className="text-pencil text-base leading-relaxed">{detectedCategory.description}</p>
-                {detectedCategory.nameLocal && (
-                  <p className="text-sm text-gray-600 font-sketch mt-2">{detectedCategory.nameLocal}</p>
+                <p className="text-pencil text-base leading-relaxed">Waste category detected</p>
+                {detectedCategory?.nameLocal && (
+                  <p className="text-sm text-gray-600 font-sketch mt-2">{detectedCategory?.nameLocal}</p>
                 )}
               </div>
 
@@ -292,17 +292,17 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                   value={selectedDisposal}
                   onChange={(e) => {
                     triggerHaptic('light');
-                    setSelectedDisposal(e.target.value);
+                    setSelectedDisposal(e.target.value as DisposalMethod);
                   }}
                   className="w-full p-4 border-2 border-gray-300 rounded-xl font-sketch focus:ring-4 focus:ring-green-400 focus:ring-offset-2 focus:border-green-500 outline-none bg-white text-base min-h-[56px] appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%23374151%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E')] bg-no-repeat bg-right-3 pr-12"
                   aria-describedby="disposal-help"
                   style={{ touchAction: 'manipulation', fontSize: '16px' }}
                 >
                   <option value="">Select disposal method...</option>
-                  {Object.keys(detectedCategory.carbonCredits).map((method) => (
+                  {detectedCategory?.carbonCredits && Object.keys(detectedCategory.carbonCredits).map((method) => (
                     <option key={method} value={method}>
                       {method.charAt(0).toUpperCase() + method.slice(1).replace('_', ' ')} 
-                      ({detectedCategory.carbonCredits[method] > 0 ? '+' : ''}{detectedCategory.carbonCredits[method]} credits/kg)
+                      ({(detectedCategory.carbonCredits as any)[method] > 0 ? '+' : ''}{(detectedCategory.carbonCredits as any)[method]} credits/kg)
                     </option>
                   ))}
                 </select>
@@ -342,7 +342,7 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                       key={suggestion}
                       onClick={(e) => {
                         triggerHaptic('light');
-                        addTouchFeedback(e.currentTarget);
+                        applyTouchFeedback(e.currentTarget);
                         setWeight(suggestion);
                       }}
                       className="min-h-[40px] px-4 py-2 text-sm bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-full hover:from-gray-200 hover:to-gray-300 active:from-gray-300 active:to-gray-400 font-sketch transition-all duration-150 shadow-sm active:shadow-none"
@@ -376,10 +376,10 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
               <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-xl mb-6 border border-yellow-200 shadow-sm">
                 <h4 className="font-sketch text-yellow-800 mb-3 text-base flex items-center gap-2">
                   <span className="text-lg">💡</span>
-                  <span>Tips for {detectedCategory.name}:</span>
+                  <span>Tips for {detectedCategory?.name}:</span>
                 </h4>
                 <ul className="text-sm text-yellow-700 space-y-2">
-                  {detectedCategory.tips.map((tip: string, index: number) => (
+                  {detectedCategory?.tips?.map((tip: string, index: number) => (
                     <li key={index} className="flex items-start gap-2">
                       <span className="text-yellow-600 font-bold mt-0.5">•</span>
                       <span>{tip}</span>
@@ -393,10 +393,10 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                 <button
                   onClick={(e) => {
                     triggerHaptic('medium');
-                    addTouchFeedback(e.currentTarget);
+                    applyTouchFeedback(e.currentTarget);
                     setShowResults(false);
                     setDetectedCategory(null);
-                    setSelectedDisposal('');
+                    setSelectedDisposal('disposed');
                     setWeight('');
                   }}
                   className="flex-1 min-h-[56px] px-6 py-4 border-2 border-gray-400 text-gray-700 font-sketch rounded-xl hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-offset-2 transition-all duration-200 bg-white shadow-sm text-base"
@@ -409,7 +409,7 @@ export default function WasteScanner({ onClose, onSave }: WasteScannerProps) {
                   onClick={(e) => {
                     if (!selectedDisposal || !weight) return;
                     triggerHaptic('heavy');
-                    addTouchFeedback(e.currentTarget);
+                    applyTouchFeedback(e.currentTarget);
                     handleSave();
                   }}
                   disabled={!selectedDisposal || !weight}

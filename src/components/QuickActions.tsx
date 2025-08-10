@@ -98,7 +98,7 @@ const quickActions: QuickAction[] = [
 ];
 
 interface QuickActionsWidgetProps {
-  onQuickAdd: (entry: any) => void;
+  onQuickAdd: (entry: any) => void | Promise<void>;
 }
 
 export function QuickActionsWidget({ onQuickAdd }: QuickActionsWidgetProps) {

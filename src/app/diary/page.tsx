@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react'
+import { WasteEntry } from '@/types/waste'
 import Link from 'next/link'
 import { useNetworkAwareLoading } from '@/hooks/useNetworkConnection'
 // Mobile performance monitoring removed for build
@@ -31,16 +32,7 @@ const DataExport = lazy(() => import('@/components/DataExport'))
 const UserPreferencesModal = lazy(() => import('@/components/UserPreferences').then(module => ({ default: module.UserPreferencesModal })))
 const QuickActionsWidget = lazy(() => import('@/components/QuickActions').then(module => ({ default: module.QuickActionsWidget })))
 
-interface WasteEntry {
-  id: string
-  categoryId: string
-  categoryName: string
-  disposal: string
-  weight: number
-  carbonCredits: number
-  timestamp: Date
-  image?: string
-}
+// WasteEntry interface imported from @/types/waste
 
 export default function WasteDiaryPage() {
   const [todayEntries, setTodayEntries] = useState<WasteEntry[]>([])

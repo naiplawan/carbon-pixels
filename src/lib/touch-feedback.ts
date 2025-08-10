@@ -55,7 +55,7 @@ import { triggerHaptic } from './haptic-feedback'
 
 export const useTouchFeedback = (options: TouchFeedbackOptions = {}) => {
   const [isPressed, setIsPressed] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const handlePressStart = useCallback(() => {
     setIsPressed(true)

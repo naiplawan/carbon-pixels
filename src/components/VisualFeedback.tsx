@@ -422,7 +422,7 @@ export function FeedbackButton({
   loading?: boolean;
   hapticFeedback?: boolean;
   className?: string;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart' | 'onAnimationEnd' | 'onDrag' | 'onDragStart' | 'onDragEnd'>) {
 
   const [isPressed, setIsPressed] = useState(false);
 

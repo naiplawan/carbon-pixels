@@ -56,7 +56,7 @@ export interface ToastNotification {
 
 interface NotificationSystemProps {
   onToast?: (notification: ToastNotification) => void;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((functions: any) => React.ReactNode);
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {

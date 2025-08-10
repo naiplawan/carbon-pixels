@@ -1,15 +1,7 @@
 // High-performance localStorage operations with compression and batching
 
-interface WasteEntry {
-  id: string;
-  categoryId: string;
-  categoryName: string;
-  disposal: string;
-  weight: number;
-  carbonCredits: number;
-  timestamp: Date;
-  image?: string;
-}
+// Using WasteEntry from types instead of local interface
+import { WasteEntry } from '@/types/waste';
 
 class PerformantStorage {
   private cache = new Map<string, any>();
@@ -292,7 +284,7 @@ export class StoragePerformanceTester {
       disposal: 'composted',
       weight: Math.random() * 2,
       carbonCredits: Math.floor(Math.random() * 50),
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       image: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==` // Small test image
     }));
   }

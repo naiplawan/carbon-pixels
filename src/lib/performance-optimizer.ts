@@ -113,7 +113,7 @@ class PerformanceOptimizer {
    * Initialize performance monitoring
    */
   private initializePerformanceMonitoring(): void {
-    if (!window.PerformanceObserver) return
+    if (typeof window === 'undefined' || !window.PerformanceObserver) return
 
     // Monitor Largest Contentful Paint
     try {
@@ -138,10 +138,11 @@ class PerformanceOptimizer {
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries()
         entries.forEach((entry) => {
-          this.metrics.set('fid', entry.processingStart - entry.startTime)
+          const processingStart = (entry as any).processingStart || entry.startTime
+          this.metrics.set('fid', processingStart - entry.startTime)
           
           // Optimize if FID is poor (> 100ms)
-          if ((entry.processingStart - entry.startTime) > 100) {
+          if ((processingStart - entry.startTime) > 100) {
             this.handlePoorFID()
           }
         })
@@ -490,12 +491,14 @@ export const createOptimizedComponent = <P extends object>(
   
   if (lazy) {
     const LazyComponent = React.lazy(() => Promise.resolve({ default: OptimizedComponent }))
-    return (props: P) => 
+    const LazyWrapper = (props: P) => 
       React.createElement(
         React.Suspense,
         { fallback: React.createElement('div', { className: 'animate-pulse h-8 bg-gray-200 rounded' }) },
         React.createElement(LazyComponent, props)
       )
+    LazyWrapper.displayName = `LazyOptimized(${Component.displayName || Component.name})`
+    return LazyWrapper
   }
   
   return OptimizedComponent

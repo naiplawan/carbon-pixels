@@ -21,11 +21,13 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 interface PWAInstallPromptProps {
+  isOpen?: boolean
+  onClose?: () => void
   onInstall?: () => void
   onDismiss?: () => void
 }
 
-export default function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPromptProps) {
+export default function PWAInstallPrompt({ isOpen, onClose, onInstall, onDismiss }: PWAInstallPromptProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showPrompt, setShowPrompt] = useState(false)
   const [isInstalling, setIsInstalling] = useState(false)

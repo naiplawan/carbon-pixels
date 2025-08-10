@@ -73,7 +73,7 @@ export function PWAProvider({
   const { storage: offlineStorage, isReady: isOfflineReady } = useOfflineStorage()
   const { syncStatus, forceSyncNow, queueForSync } = useBackgroundSync()
   const { 
-    notificationsEnabled, 
+    isSubscribed: notificationsEnabled, 
     enableNotifications, 
     disableNotifications,
     isSupported: notificationsSupported 

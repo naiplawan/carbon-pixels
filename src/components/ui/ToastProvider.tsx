@@ -61,10 +61,10 @@ export function ToastProvider({
 
 interface ToastContainerProps {
   children: React.ReactNode;
-  position: ToastProviderProps['position'];
+  position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
 }
 
-function ToastContainer({ children, position }: ToastContainerProps) {
+function ToastContainer({ children, position = 'top-right' }: ToastContainerProps) {
   const positionClasses = {
     'top-right': 'top-4 right-4',
     'top-left': 'top-4 left-4',

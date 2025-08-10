@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { WasteEntry } from '@/types/waste';
 import Link from 'next/link';
 import { storage, preloadStorageData } from '@/lib/storage-performance';
 import { PWAManager, OfflineIndicator, usePWA } from '@/components/PWAManager';
@@ -16,16 +17,7 @@ const GameificationPanel = lazy(() => import('@/components/GameificationPanel'))
 const SocialShareManager = lazy(() => import('@/components/SocialShareManager'));
 const CommunityPanel = lazy(() => import('@/components/CommunityPanelEnhanced'));
 
-interface WasteEntry {
-  id: string;
-  categoryId: string;
-  categoryName: string;
-  disposal: string;
-  weight: number;
-  carbonCredits: number;
-  timestamp: Date;
-  image?: string;
-}
+// WasteEntry interface imported from @/types/waste
 
 export default function EnhancedWasteDiary() {
   const [todayEntries, setTodayEntries] = useState<WasteEntry[]>([]);

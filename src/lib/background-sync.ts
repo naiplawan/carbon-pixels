@@ -47,10 +47,10 @@ class BackgroundSyncManager {
    * Register background sync with service worker
    */
   async registerSync(tag: string): Promise<void> {
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+    if ('serviceWorker' in navigator && 'sync' in (window.ServiceWorkerRegistration.prototype as any)) {
       try {
         const registration = await navigator.serviceWorker.ready
-        await registration.sync.register(tag)
+        await (registration as any).sync.register(tag)
         console.log('[Sync] Background sync registered:', tag)
       } catch (error) {
         console.error('[Sync] Failed to register background sync:', error)

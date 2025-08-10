@@ -3,6 +3,12 @@
  * Daily reminders and achievement notifications in Thai/English
  */
 
+interface NotificationAction {
+  action: string
+  title: string
+  icon?: string
+}
+
 interface NotificationPayload {
   title: string
   body: string
@@ -164,7 +170,7 @@ class PushNotificationManager {
     try {
       const subscription = await this.serviceWorkerRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
+        applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey) as BufferSource
       })
 
       this.subscription = subscription
@@ -266,7 +272,7 @@ class PushNotificationManager {
       data: { ...template.data, ...customData },
       tag: template.tag,
       requireInteraction: templateKey === 'achievementUnlocked',
-      actions: this.getNotificationActions(templateKey, preferThai)
+      // Note: actions are not supported in all browsers for Notification constructor
     }
 
     try {
