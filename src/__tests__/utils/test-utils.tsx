@@ -70,7 +70,11 @@ export const mockLocalStorage = () => {
 export const mockNotificationAPI = () => {
   const mockNotification = jest.fn();
   global.Notification = mockNotification as any;
-  global.Notification.permission = 'default';
+  Object.defineProperty(global.Notification, 'permission', {
+    value: 'default',
+    writable: true,
+    configurable: true
+  });
   global.Notification.requestPermission = jest.fn().mockResolvedValue('granted');
   
   return mockNotification;

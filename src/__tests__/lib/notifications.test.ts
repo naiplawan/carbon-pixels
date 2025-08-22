@@ -3,7 +3,11 @@ import { NotificationManager, type NotificationConfig, type ScheduledNotificatio
 // Mock the global Notification API
 const mockNotification = jest.fn();
 global.Notification = mockNotification as any;
-global.Notification.permission = 'default';
+Object.defineProperty(global.Notification, 'permission', {
+  value: 'default',
+  writable: true,
+  configurable: true
+});
 global.Notification.requestPermission = jest.fn();
 
 // Mock localStorage
@@ -56,7 +60,11 @@ describe('NotificationManager', () => {
     });
 
     it('should return true if permission already granted', async () => {
-      global.Notification.permission = 'granted';
+      Object.defineProperty(global.Notification, 'permission', {
+        value: 'granted',
+        writable: true,
+        configurable: true
+      });
       
       const result = await notificationManager.requestPermission();
       
@@ -114,7 +122,11 @@ describe('NotificationManager', () => {
         requiresPermission: true,
       };
       
-      global.Notification.permission = 'default';
+      Object.defineProperty(global.Notification, 'permission', {
+        value: 'default',
+        writable: true,
+        configurable: true
+      });
       global.Notification.requestPermission = jest.fn().mockResolvedValue('granted');
 
       await notificationManager.showNotification(configWithPermission);

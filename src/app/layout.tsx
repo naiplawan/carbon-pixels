@@ -1,5 +1,20 @@
 import type { Metadata } from 'next'
+import { Patrick_Hand, Kalam } from 'next/font/google'
 import './globals.css'
+
+const patrickHand = Patrick_Hand({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-handwritten'
+})
+
+const kalam = Kalam({
+  weight: ['300', '400', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sketch'
+})
 
 export const metadata: Metadata = {
   title: 'Thailand Waste Diary - Carbon Credits Tracker',
@@ -45,21 +60,7 @@ export default function RootLayout({
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
         
-        {/* Optimized font loading with Next.js font optimization */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Kalam:wght@300;400;700&display=swap"
-          rel="stylesheet"
-        />
-        {/* Preload critical font files */}
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/patrickhand/v18/LDIxapCSOBg7S-QT7q4AOeekkvQ.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
+        {/* Fonts are now optimized via Next.js font optimization */}
         {/* Preload critical JSON data */}
         <link rel="modulepreload" href="/src/data/thailand-waste-categories.json" />
         
@@ -68,7 +69,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
       </head>
-      <body className="overflow-x-hidden">
+      <body className={`${patrickHand.variable} ${kalam.variable} overflow-x-hidden`}>
         {/* Inject navigation styles */}
         <NavigationStyles />
         

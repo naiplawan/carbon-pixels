@@ -104,7 +104,7 @@ export default function NavigationProvider({
   };
 
   // Save preferences to localStorage
-  const savePreferences = (newPreferences: Partial<NavigationState>) => {
+  const savePreferences = useCallback((newPreferences: Partial<NavigationState>) => {
     if (typeof window === 'undefined') return;
     
     try {
@@ -112,7 +112,7 @@ export default function NavigationProvider({
     } catch (error) {
       console.warn('Failed to save navigation preferences:', error);
     }
-  };
+  }, []);
 
   const [state, setState] = useState<NavigationState>(() => {
     const savedPreferences = loadPreferences();

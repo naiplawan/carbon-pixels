@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'handwritten': ['Patrick Hand', 'cursive'],
-        'sketch': ['Kalam', 'cursive'],
+        'handwritten': ['var(--font-handwritten)', 'Patrick Hand', 'cursive'],
+        'sketch': ['var(--font-sketch)', 'Kalam', 'cursive'],
       },
       colors: {
         'paper': '#faf9f7',
